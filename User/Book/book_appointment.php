@@ -17,10 +17,11 @@ if (empty($input)) {
     $input = json_decode($raw, true);
 }
 
-if (!isset($input['time'], $input['keyCert'], $input['email'], $input['carId'], $input['centerId'], $input['date'], $input['session'], $input['timeStart'])) {
+// Kiểm tra các tham số bắt buộc
+if (!isset($input['time'], $input['keyCert'], $input['email'], $input['carId'], $input['centerId'], $input['date'], $input['session'], $input['timeStart'], $input['serviceIds']) || !is_array($input['serviceIds'])) {
     echo json_encode([
         "status" => "error",
-        "error"  => ["code" => 400, "message" => "Thiếu tham số"],
+        "error"  => ["code" => 400, "message" => "Thiếu tham số hoặc serviceIds không hợp lệ"],
         "data"   => null
     ]);
     exit;
@@ -35,7 +36,8 @@ $date = $input['date'];
 $session = $input['session'];
 $timeStart = $input['timeStart'];
 $description = $input['description'] ?? '';
-$status = 'pending'; // Trạng thái mặc định
+$status = 'pending';
+$serviceIds = $input['serviceIds'];
 
 if (!isValidKey($keyCert, $time)) {
     echo json_encode([
@@ -46,7 +48,6 @@ if (!isValidKey($keyCert, $time)) {
     exit;
 }
 
-// Kiểm tra định dạng ngày và giờ
 if (!DateTime::createFromFormat('Y-m-d', $date) || !DateTime::createFromFormat('H:i', $timeStart)) {
     echo json_encode([
         "status" => "error",
@@ -56,7 +57,6 @@ if (!DateTime::createFromFormat('Y-m-d', $date) || !DateTime::createFromFormat('
     exit;
 }
 
-// Tạo appointment_time
 $appointmentTime = "$date $timeStart:00";
 
 // Lấy uid từ email
@@ -75,30 +75,48 @@ if ($resultUid->num_rows === 0) {
     exit;
 }
 
-$uid = $resultUid->fetch_assoc()['id'];
+$uid = $resultUid->fetch_assoc()['uid']; 
 $stmtUid->close();
 
-// Chèn dữ liệu vào bảng appointments
-$sql = "INSERT INTO appointments (uid, car_id, gara_id, appointment_date, appointment_time, description, status, created_at) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("iiisssss", $uid, $carId, $centerId, $date, $appointmentTime, $description, $status);
+// Bắt đầu giao dịch
+$conn->begin_transaction();
 
-if ($stmt->execute()) {
+try {
+    // Chèn dữ liệu vào bảng appointments
+    $sql = "INSERT INTO appointments (uid, car_id, gara_id, appointment_date, appointment_time, description, status, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iiisssss", $uid, $carId, $centerId, $date, $appointmentTime, $description, $status);
+    $stmt->execute();
     $appointmentId = $conn->insert_id;
+    $stmt->close();
+
+    // Chèn dữ liệu vào bảng trung gian lịch hẹn-dịch vụ
+    $sqlService = "INSERT INTO detail_appointment (appointment_id, service_id) VALUES (?, ?)";
+    $stmtService = $conn->prepare($sqlService);
+    foreach ($serviceIds as $serviceId) {
+        $stmtService->bind_param("ii", $appointmentId, $serviceId);
+        $stmtService->execute();
+    }
+    $stmtService->close();
+
+    
+    $conn->commit();
+
     echo json_encode([
         "status" => "success",
         "error"  => ["code" => 0, "message" => "Success"],
-        "items"  => ["appointment_id" => $appointmentId] 
+        "items"  => ["appointment_id" => $appointmentId]
     ]);
-} else {
+} catch (Exception $e) {
+    // Rollback nếu có lỗi
+    $conn->rollback();
     echo json_encode([
         "status" => "error",
-        "error"  => ["code" => 500, "message" => "Không thể đặt lịch"],
+        "error"  => ["code" => 500, "message" => "Không thể đặt lịch: " . $e->getMessage()],
         "data"   => null
     ]);
 }
 
-$stmt->close();
 $conn->close();
 ?>

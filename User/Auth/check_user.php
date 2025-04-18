@@ -12,6 +12,28 @@ header("Content-Type: application/json");
 $conn = getDBConnection();
 $data = json_decode(file_get_contents("php://input"), true);
 
+// Kiểm tra keycert và time
+if (!isset($data['keycert']) || !isset($data['time'])) {
+    echo json_encode([
+        "status" => "error",
+        "error" => ["code" => 400, "message" => "Thiếu keycert hoặc time"],
+        "data" => null
+    ]);
+    exit;
+}
+
+$keyCert = $data['keycert'];
+$time = $data['time'];
+
+if (!isValidKey($keyCert, $time)) {
+    echo json_encode([
+        "status" => "error",
+        "error" => ["code" => 401, "message" => "Keycert không hợp lệ hoặc hết hạn"],
+        "data" => null
+    ]);
+    exit;
+}
+
 // Kiểm tra xem email có trong dữ liệu đầu vào không
 if (!isset($data['email'])) {
     echo json_encode([
