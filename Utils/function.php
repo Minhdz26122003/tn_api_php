@@ -20,6 +20,18 @@ function generateOTP($length = 6) {
 
 
 //  Hàm kiểm tra
+// function isValidKey($keyCert, $time) {
+//     if (!$time || !$keyCert) return false;
+//     // Parse theo UTC/local tương ứng
+//     $requestTime = strtotime($time);
+//     if ($requestTime === false || abs(time() - $requestTime) > 300) {
+//         return false;
+//     }
+//     $expectedKey = md5(SECRET_KEY . $time);
+//     return hash_equals($expectedKey, $keyCert);
+// }
+
+//  Hàm kiểm tra
 function isValidKey($keyCert, $time) {
     if (!$time || !$keyCert) return false;
     // Parse theo UTC/local tương ứng

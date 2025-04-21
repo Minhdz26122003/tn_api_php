@@ -18,8 +18,8 @@ if (empty($input)) {
     $input = json_decode($raw, true);
 }
 
-// Kiểm tra sự tồn tại của các tham số bắt buộc: uid, time và keyCert
-if (!isset($input['email'], $input['time'], $input['keyCert'])) {
+
+if (!isset($input['uid'], $input['time'], $input['keyCert'])) {
     echo json_encode([
         "status" => "error",
         "error"  => ["code" => 400, "message" => "Thiếu tham số"],
@@ -28,23 +28,22 @@ if (!isset($input['email'], $input['time'], $input['keyCert'])) {
     exit;
 }
 
-$email     = $input['email'];
-$time    = $input['time'];
+$time = $input['time'];
 $keyCert = $input['keyCert'];
-
+$uid     = $input['uid'];
 
 if (!isValidKey($keyCert, $time)) {
     echo json_encode([
         "status" => "error",
-        "error"  => ["code" => 403, "message" => "Keysert không hợp lệ"],
+        "error"  => ["code" => 403, "message" => "KeyCert không hợp lệ"],
         "data"   => null
     ]);
     exit;
 }
 
-// Nếu email hợp lệ, thực hiện truy vấn dữ liệu tài khoản
-if ($email) {
-    $stmt = $conn->prepare("SELECT uid, username, email, fullname, address, phonenum, birthday, gender, avatar, status FROM users WHERE email = ?");
+// Nếu uid hợp lệ, thực hiện truy vấn dữ liệu tài khoản
+if ($uid) {
+    $stmt = $conn->prepare("SELECT uid, username, email, fullname, address, phonenum, birthday, gender, avatar, status FROM users WHERE uid = ?");
     if (!$stmt) {
         echo json_encode([
             "status" => "error",
@@ -54,7 +53,7 @@ if ($email) {
         exit;
     }
     
-    $stmt->bind_param("s", $email);
+    $stmt->bind_param("i", $uid);
     $stmt->execute();
     $result = $stmt->get_result();
     

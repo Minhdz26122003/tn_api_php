@@ -16,9 +16,26 @@ if (empty($input)) {
     $raw = file_get_contents('php://input');
     $input = json_decode($raw, true);
 }
+// Kiểm tra keycert và time
+if (!isset($input['keycert']) || !isset($input['time'])) {
+    echo json_encode([
+        "status" => "error",
+        "error" => ["code" => 400, "message" => "Thiếu keycert hoặc time"],
+        "input" => null
+    ]);
+    exit;
+}
 
+if (!isValidKey($keyCert, $time)) {
+    echo json_encode([
+        "status" => "error",
+        "error" => ["code" => 401, "message" => "Keycert không hợp lệ hoặc hết hạn"],
+        "data" => null
+    ]);
+    exit;
+}
 // Kiểm tra các tham số bắt buộc
-if (!isset($input['time'], $input['keyCert'], $input['email'], $input['carId'], $input['centerId'], $input['date'], $input['session'], $input['timeStart'], $input['serviceIds']) || !is_array($input['serviceIds'])) {
+if (!isset($input['email'], $input['carId'], $input['centerId'], $input['date'], $input['session'], $input['timeStart'], $input['serviceIds']) || !is_array($input['serviceIds'])) {
     echo json_encode([
         "status" => "error",
         "error"  => ["code" => 400, "message" => "Thiếu tham số hoặc serviceIds không hợp lệ"],
@@ -109,7 +126,6 @@ try {
         "items"  => ["appointment_id" => $appointmentId]
     ]);
 } catch (Exception $e) {
-    // Rollback nếu có lỗi
     $conn->rollback();
     echo json_encode([
         "status" => "error",

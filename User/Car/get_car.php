@@ -18,7 +18,7 @@ if (empty($input)) {
 }
 
 // Kiểm tra sự tồn tại của các tham số bắt buộc: uid, time và keyCert
-if (!isset($input['email'], $input['time'], $input['keyCert'])) {
+if (!isset($input['uid'], $input['time'], $input['keyCert'])) {
     echo json_encode([
         "status" => "error",
         "error"  => ["code" => 400, "message" => "Thiếu tham số"],
@@ -29,7 +29,7 @@ if (!isset($input['email'], $input['time'], $input['keyCert'])) {
 
 $time = $input['time'];
 $keyCert = $input['keyCert'];
-$email     = $input['email'];
+$uid     = $input['uid'];
 
 if (!isValidKey($keyCert, $time)) {
     echo json_encode([
@@ -40,12 +40,12 @@ if (!isValidKey($keyCert, $time)) {
     exit;
 }
 
-// Truy vấn danh sách loại dịch vụ
-if ($email) {
-    $stmt = $conn->prepare("SELECT cr.license_plate, us.email 
+
+if ($uid) {
+    $stmt = $conn->prepare("SELECT cr.car_id, cr.license_plate, cr.name, cr.manufacturer, cr.year_manufacture, us.email 
                             FROM car cr 
                             INNER JOIN users us ON cr.uid = us.uid 
-                            WHERE us.email = ?");
+                            WHERE us.uid = ? AND cr.status = 0");
     if (!$stmt) {
         echo json_encode([
             "status" => "error",
@@ -55,7 +55,7 @@ if ($email) {
         exit;
     }
 
-    $stmt->bind_param("s", $email);
+    $stmt->bind_param("i", $uid);
     $stmt->execute();
     $result = $stmt->get_result();
 

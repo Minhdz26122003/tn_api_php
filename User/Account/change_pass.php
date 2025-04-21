@@ -9,9 +9,6 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 
-// define("SECRET_KEY", "minh8386");
-
-// Đọc dữ liệu JSON
 $data = json_decode(file_get_contents("php://input"), true);
 if (!$data) {
     echo json_encode([

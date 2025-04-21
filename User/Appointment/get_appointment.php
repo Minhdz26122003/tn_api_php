@@ -17,7 +17,7 @@ if (empty($input)) {
     $input = json_decode($raw, true);
 }
 
-if (!isset($input['time'], $input['keyCert'], $input['email'])) {
+if (!isset($input['time'], $input['keyCert'], $input['uid'])) {
     echo json_encode([
         "status" => "error",
         "error" => ["code" => 400, "message" => "Thiếu tham số"],
@@ -28,7 +28,7 @@ if (!isset($input['time'], $input['keyCert'], $input['email'])) {
 
 $time = $input['time'];
 $keyCert = $input['keyCert'];
-$email = $input['email'];
+$uid = $input['uid'];
 
 if (!isValidKey($keyCert, $time)) {
     echo json_encode([
@@ -41,9 +41,9 @@ if (!isValidKey($keyCert, $time)) {
 
 
 
-// Kiểm tra email tồn tại
-$stmt = $conn->prepare("SELECT uid FROM users WHERE email = ?");
-$stmt->bind_param("s", $email);
+// Kiểm tra uid tồn tại
+$stmt = $conn->prepare("SELECT uid FROM users WHERE uid = ?");
+$stmt->bind_param("i", $uid);
 $stmt->execute();
 $result = $stmt->get_result();
 if ($result->num_rows === 0) {
@@ -62,7 +62,7 @@ $stmt->close();
 // Truy vấn danh sách lịch hẹn
 $sql = "SELECT * FROM appointment WHERE uid = ? ORDER BY appointment_id DESC";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $uid);
+$stmt->bind_param("i", $uid);
 $stmt->execute();
 $result = $stmt->get_result();
 

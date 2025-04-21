@@ -22,7 +22,7 @@ $response = [
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-// 1) Kiểm tra JSON hợp lệ
+// Kiểm tra JSON hợp lệ
 if (!$data) {
     $response = [
         "error" => ["code" => 4, "message" => "Dữ liệu JSON không hợp lệ!"],
@@ -32,7 +32,7 @@ if (!$data) {
     exit;
 }
 
-// 2) Kiểm tra keyCert
+// Kiểm tra keyCert
 if (!isset($data["keyCert"], $data["time"]) || !isValidKey($data["keyCert"], $data["time"])) {
     $response = [
         "error" => ["code" => 5, "message" => "Xác thực thất bại!"],
@@ -42,7 +42,7 @@ if (!isset($data["keyCert"], $data["time"]) || !isValidKey($data["keyCert"], $da
     exit;
 }
 
-// 3) Kiểm tra thời gian (chỉ chấp nhận request trong 5 phút)
+// Kiểm tra thời gian (chỉ chấp nhận request trong 5 phút)
 if (abs(time() - strtotime($data["time"])) > 300) {
     $response = [
         "error" => ["code" => 6, "message" => "Thời gian yêu cầu không hợp lệ!"],
@@ -52,7 +52,7 @@ if (abs(time() - strtotime($data["time"])) > 300) {
     exit;
 }
 
-// 4) Kiểm tra email
+// Kiểm tra email
 if (!isset($data["email"]) || !filter_var($data["email"], FILTER_VALIDATE_EMAIL)) {
     $response = [
         "error" => ["code" => 2, "message" => "Email không hợp lệ!"],
@@ -62,7 +62,7 @@ if (!isset($data["email"]) || !filter_var($data["email"], FILTER_VALIDATE_EMAIL)
     exit;
 }
 
-// 5) Kiểm tra OTP
+// Kiểm tra OTP
 if (!isset($data["otp"]) || empty($data["otp"])) {
     $response = [
         "error" => ["code" => 3, "message" => "Thiếu mã OTP!"],
@@ -125,6 +125,5 @@ if ($result->num_rows === 0) {
     }
 }
 
-// Đóng kết nối & trả về JSON duy nhất
 $conn->close();
 echo json_encode($response);

@@ -12,23 +12,23 @@ header("Content-Type: application/json");
 $conn = getDBConnection();
 $data = json_decode(file_get_contents("php://input"), true);
 
-// Kiểm tra keycert và time
-if (!isset($data['keycert']) || !isset($data['time'])) {
+// Kiểm tra keyCert và time
+if (!isset($data['keyCert']) || !isset($data['time'])) {
     echo json_encode([
         "status" => "error",
-        "error" => ["code" => 400, "message" => "Thiếu keycert hoặc time"],
+        "error" => ["code" => 400, "message" => "Thiếu keyCert hoặc time"],
         "data" => null
     ]);
     exit;
 }
 
-$keyCert = $data['keycert'];
+$keyCert = $data['keyCert'];
 $time = $data['time'];
 
 if (!isValidKey($keyCert, $time)) {
     echo json_encode([
         "status" => "error",
-        "error" => ["code" => 401, "message" => "Keycert không hợp lệ hoặc hết hạn"],
+        "error" => ["code" => 401, "message" => "keyCert không hợp lệ hoặc hết hạn"],
         "data" => null
     ]);
     exit;
@@ -79,22 +79,35 @@ if ($userExists) {
     $birthday = isset($data['birthday']) ? $data['birthday'] : null;
     $address = isset($data['address']) ? trim($data['address']) : '';
 
-    $insert = $conn->prepare("INSERT INTO users (email, username, avatar, fullname, gender, birthday, address, phonenum) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $insert = $conn->prepare(
+        "INSERT INTO users (email, username, avatar, fullname, gender, birthday, address, phonenum) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    );
     $insert->bind_param("ssssssss", 
-        $email, $username, $avatar, $fullname, $gender, $birthday, $address, $phonenum);
-    $success = $insert->execute();
-
-    if ($success) {
+        $email, $username, $avatar, $fullname,
+        $gender, $birthday, $address, $phonenum
+    );
+    if ($insert->execute()) {
+        $newUid = $conn->insert_id;
         echo json_encode([
             "status" => "success",
             "error" => ["code" => 0, "message" => "Thêm mới tài khoản thành công"],
-            "data" => ["email" => $email]
+            "data" => [
+                "uid" => $newUid,
+                "email" => $email,
+                "username" => $username,
+                "fullname" => $fullname,
+                "address" => $address,
+                "phonenum" => $phonenum,
+                "birthday" => $birthday,
+                "gender" => $gender,
+                "avatar" => $avatar
+            ]
         ]);
     } else {
         echo json_encode([
             "status" => "error",
-            "error" => ["code" => 500, "message" => "Thêm mới tài khoản thất bại"],
+            "error" => ["code" => 500, "message" => "Thêm mới tài khoản thất bại: " . $insert->error],
             "data" => null
         ]);
     }
