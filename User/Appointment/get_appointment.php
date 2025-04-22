@@ -40,25 +40,6 @@ if (!isValidKey($keyCert, $time)) {
 }
 
 
-
-// Kiểm tra uid tồn tại
-$stmt = $conn->prepare("SELECT uid FROM users WHERE uid = ?");
-$stmt->bind_param("i", $uid);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result->num_rows === 0) {
-    echo json_encode([
-        "status" => "error",
-        "error" => ["code" => 404, "message" => "Người dùng không tồn tại"],
-        "data" => null
-    ]);
-    $stmt->close();
-    $conn->close();
-    exit;
-}
-$uid = $result->fetch_assoc()['uid'];
-$stmt->close();
-
 // Truy vấn danh sách lịch hẹn
 $sql = "SELECT * FROM appointment WHERE uid = ? ORDER BY appointment_id DESC";
 $stmt = $conn->prepare($sql);

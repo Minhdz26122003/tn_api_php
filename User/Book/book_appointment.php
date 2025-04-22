@@ -16,26 +16,32 @@ if (empty($input)) {
     $raw = file_get_contents('php://input');
     $input = json_decode($raw, true);
 }
-// Kiểm tra keycert và time
-if (!isset($input['keycert']) || !isset($input['time'])) {
-    echo json_encode([
-        "status" => "error",
-        "error" => ["code" => 400, "message" => "Thiếu keycert hoặc time"],
-        "input" => null
-    ]);
-    exit;
+
+// Kiểm tra keyCert và time có gửi lên không?
+if (!isset($input['time'], $input['keyCert'])) {
+    http_response_code(400);
+    exit(json_encode([
+        "status"=>"error",
+        "error"=>["code"=>400,"message"=>"Thiếu keyCert hoặc time"],
+        "data"=>null
+    ]));
 }
 
+// Gán biến và kiểm tra key
+$time    = $input['time'];
+$keyCert = $input['keyCert'];
+
 if (!isValidKey($keyCert, $time)) {
-    echo json_encode([
-        "status" => "error",
-        "error" => ["code" => 401, "message" => "Keycert không hợp lệ hoặc hết hạn"],
-        "data" => null
-    ]);
-    exit;
+    http_response_code(403);
+    exit(json_encode([
+        "status"=>"error",
+        "error"=>["code"=>403,"message"=>"keyCert không hợp lệ hoặc hết hạn"],
+        "data"=>null
+    ]));
 }
+
 // Kiểm tra các tham số bắt buộc
-if (!isset($input['email'], $input['carId'], $input['centerId'], $input['date'], $input['session'], $input['timeStart'], $input['serviceIds']) || !is_array($input['serviceIds'])) {
+if (!isset($input['uid'], $input['car_id'], $input['gara_id'], $input['appointment_date'], $input['description'], $input['appointment_time'], $input['status'], $input['reason']) || !is_array($input['serviceIds'])) {
     echo json_encode([
         "status" => "error",
         "error"  => ["code" => 400, "message" => "Thiếu tham số hoặc serviceIds không hợp lệ"],
@@ -44,28 +50,29 @@ if (!isset($input['email'], $input['carId'], $input['centerId'], $input['date'],
     exit;
 }
 
-$time = $input['time'];
-$keyCert = $input['keyCert'];
-$email = $input['email'];
-$carId = $input['carId'];
-$centerId = $input['centerId'];
-$date = $input['date'];
-$session = $input['session'];
-$timeStart = $input['timeStart'];
+$uid = $input['uid'];
+$car_id = $input['car_id'];
+$gara_id = $input['gara_id'];
+$appointment_date = $input['appointment_date'];
+$appointment_time = $input['appointment_time'];
 $description = $input['description'] ?? '';
-$status = 'pending';
+$status = 0;
+$reason =$input['reason'] ?? null;
 $serviceIds = $input['serviceIds'];
 
 if (!isValidKey($keyCert, $time)) {
     echo json_encode([
         "status" => "error",
-        "error"  => ["code" => 403, "message" => "KeyCert không hợp lệ"],
+        "error"  => ["code" => 403, "message" => "keyCert không hợp lệ"],
         "data"   => null
     ]);
     exit;
 }
 
-if (!DateTime::createFromFormat('Y-m-d', $date) || !DateTime::createFromFormat('H:i', $timeStart)) {
+$dtDate = DateTime::createFromFormat('Y-m-d', $appointment_date);
+$dtTime = DateTime::createFromFormat('H:i', $appointment_time);
+
+if (!$dtDate || !$dtTime) {
     echo json_encode([
         "status" => "error",
         "error"  => ["code" => 400, "message" => "Định dạng ngày hoặc giờ không hợp lệ"],
@@ -74,36 +81,19 @@ if (!DateTime::createFromFormat('Y-m-d', $date) || !DateTime::createFromFormat('
     exit;
 }
 
-$appointmentTime = "$date $timeStart:00";
-
-// Lấy uid từ email
-$sqlUid = "SELECT uid FROM users WHERE email = ?";
-$stmtUid = $conn->prepare($sqlUid);
-$stmtUid->bind_param("s", $email);
-$stmtUid->execute();
-$resultUid = $stmtUid->get_result();
-
-if ($resultUid->num_rows === 0) {
-    echo json_encode([
-        "status" => "error",
-        "error"  => ["code" => 404, "message" => "Người dùng không tồn tại"],
-        "data"   => null
-    ]);
-    exit;
-}
-
-$uid = $resultUid->fetch_assoc()['uid']; 
-$stmtUid->close();
+// Format lại theo chuẩn của MySQL
+$appointment_date = $dtDate->format('Y-m-d'); 
+$appointment_time = $dtTime->format('H:i:s');     
 
 // Bắt đầu giao dịch
 $conn->begin_transaction();
 
 try {
     // Chèn dữ liệu vào bảng appointments
-    $sql = "INSERT INTO appointments (uid, car_id, gara_id, appointment_date, appointment_time, description, status, created_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+    $sql = "INSERT INTO appointment (uid, car_id, gara_id, appointment_date, appointment_time, description, status, reason, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("iiisssss", $uid, $carId, $centerId, $date, $appointmentTime, $description, $status);
+    $stmt->bind_param("iiisssss", $uid, $car_id, $gara_id, $appointment_date, $appointment_time, $description, $status, $reason);
     $stmt->execute();
     $appointmentId = $conn->insert_id;
     $stmt->close();
