@@ -1,6 +1,5 @@
 <?php
 require_once "../../Config/connectdb.php";
-require_once "../../Utils/responseHelper.php";
 require_once "../../Utils/function.php";
 
 header("Access-Control-Allow-Origin: *");
@@ -39,7 +38,7 @@ if (!isValidKey($keyCert, $time)) {
 }
 
 // Truy vấn danh sách loại dịch vụ
-$sql = "SELECT * FROM center ORDER BY gara_id DESC";
+$sql = "SELECT service_id, service_name ,type_id FROM service ORDER BY service_id DESC";
 $result = $conn->query($sql);
 
 if ($result && $result->num_rows > 0) {

@@ -1,7 +1,7 @@
 <?php
 require_once "../../Config/connectdb.php";
-require_once "../../Utils/responseHelper.php";
 require_once "../../Utils/function.php";
+require_once "../../Utils/verify_token_user.php";
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -9,7 +9,7 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 
-// define("SECRET_KEY", "minh8386");
+checkToken(); // Gọi hàm kiểm tra token trước khi xử lý
 $conn = getDBConnection();
 
 $input = $_POST;
@@ -76,7 +76,7 @@ if ($uid) {
 } else {
     echo json_encode([
         "status" => "error",
-        "error"  => ["code" => 400, "message" => "Email không hợp lệ"],
+        "error"  => ["code" => 400, "message" => "uid không hợp lệ"],
         "data"   => null
     ]);
 }

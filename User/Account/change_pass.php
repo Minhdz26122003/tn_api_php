@@ -2,6 +2,7 @@
 require '../../vendor/autoload.php';
 require_once "../../Utils/function.php";
 require_once "../../Config/connectdb.php"; 
+require_once "../../Utils/verify_token_user.php";
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -9,6 +10,7 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 
+checkToken(); // Gọi hàm kiểm tra token trước khi xử lý
 $data = json_decode(file_get_contents("php://input"), true);
 if (!$data) {
     echo json_encode([

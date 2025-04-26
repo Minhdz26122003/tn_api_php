@@ -1,6 +1,5 @@
 <?php
 require_once "../../Config/connectdb.php";
-
 require_once "../../Utils/function.php";
 require_once "../../Utils/verify_token_user.php";
 
@@ -67,10 +66,11 @@ LEFT JOIN
     car cr ON cr.car_id = ap.car_id
 LEFT JOIN
     users tk ON tk.uid = ap.uid
-WHERE ap.uid = ? 
+WHERE ap.uid = AND ap.status= 3 ? 
 
 ORDER BY 
     ap.appointment_id DESC";
+
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $uid);
 $stmt->execute();

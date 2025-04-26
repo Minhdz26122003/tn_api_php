@@ -20,18 +20,6 @@ function generateOTP($length = 6) {
 
 
 //  Hàm kiểm tra
-// function isValidKey($keyCert, $time) {
-//     if (!$time || !$keyCert) return false;
-//     // Parse theo UTC/local tương ứng
-//     $requestTime = strtotime($time);
-//     if ($requestTime === false || abs(time() - $requestTime) > 300) {
-//         return false;
-//     }
-//     $expectedKey = md5(SECRET_KEY . $time);
-//     return hash_equals($expectedKey, $keyCert);
-// }
-
-//  Hàm kiểm tra
 function isValidKey($keyCert, $time) {
     if (!$time || !$keyCert) return false;
     // Parse theo UTC/local tương ứng
@@ -59,22 +47,4 @@ function getPermissionsByRole($status) {
     return $permissions;
 }
 
-// Hàm kiểm tra token
-// function isValidToken($token) {
-//     global $secretKey;
-
-//     if (!$token) {
-//         error_log("Token rỗng");
-//         return ["valid" => false, "message" => "Token rỗng"];
-//     }
-//     try {
-//         $decoded = JWT::decode($token, new Key($secretKey, 'HS256'));
-//         error_log("Token hợp lệ: " . print_r($decoded, true));
-//         return ["valid" => true, "message" => "Token hợp lệ"];
-//     } catch (Exception $e) {
-//         error_log("Lỗi giải mã token: " . $e->getMessage());
-//         return ["valid" => false, "message" => $e->getMessage()];
-//     }
-// }
-
-// ?>
+?>
