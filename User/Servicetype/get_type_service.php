@@ -45,7 +45,7 @@ if (!isValidKey($keyCert, $time)) {
 $sql = "
   SELECT 
     st.type_id, st.type_name,
-    s.service_id, s.service_name, s.service_img, s.price
+    s.service_id, s.service_name, s.service_img, s.price, s.description
   FROM service_type st
   LEFT JOIN service s ON s.type_id = st.type_id
   ORDER BY st.type_id DESC, s.service_name ASC
@@ -70,6 +70,7 @@ if ($result) {
                 'service_name' => $row['service_name'],
                 'service_img'  => $row['service_img'],
                 'price'  => $row['price'],
+                'description'  => $row['description'],
             ];
         }
     }
