@@ -86,7 +86,7 @@ function sendOTP($email, $conn) {
         $mail->Port       = 587;
 
     
-        $mail->setFrom("nguyenngocminh261203@gmail.com", 'AppHM');
+        $mail->setFrom("nguyenngocminh261203@gmail.com", 'AppWeCarAuto');
         $mail->addAddress($email);
         $mail->isHTML(true);
         $mail->Subject = $subject;

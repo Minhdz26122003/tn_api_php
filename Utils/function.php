@@ -2,6 +2,7 @@
 require '../../vendor/autoload.php';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+
 date_default_timezone_set('UTC'); 
 $secretKey = "minh8386"; 
 define("SECRET_KEY", "minh8386");
@@ -17,7 +18,6 @@ function generateToken($length = 32) {
 function generateOTP($length = 6) {
     return str_pad(random_int(0, pow(10, $length) - 1), $length, '0', STR_PAD_LEFT);
 }
-
 
 //  Hàm kiểm tra
 function isValidKey($keyCert, $time) {
@@ -41,7 +41,7 @@ function getPermissionsByRole($status) {
             'sercen', 'sale', 'appointment', 'payment', 'review', 'profile'
         ];
     } else if ($status == 2) { // Nhân viên
-        $permissions = ['dashboard', 'service', 'center', 'appointment', 'profile'];
+        $permissions = ['dashboard', 'service', 'center', 'appointment', 'profile','review'];
     }
 
     return $permissions;
