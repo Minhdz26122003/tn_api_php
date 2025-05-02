@@ -1,1 +1,27 @@
 demo1-4b8c1-firebase-adminsdk-fbsvc-30bcd01c3c.json
+# Firebase/Google service credentials
+*.json
+!lib/assets/**.json  # nếu bạn cần giữ json cho UI mock
+
+# Env file, secrets
+.env
+.env.*
+*.key
+*.pem
+
+# PHP related
+vendor/
+composer.lock
+
+# Logs
+*.log
+
+# macOS & Linux
+.DS_Store
+*.swp
+*~
+
+# Other
+*.bak
+*.tmp
+
