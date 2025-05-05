@@ -8,7 +8,7 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
-checkToken(); // Gọi hàm kiểm tra token trước khi xử lý
+checkToken(); 
 $conn = getDBConnection();
 
 $input = $_POST;
@@ -38,7 +38,6 @@ if (!isValidKey($keyCert, $time)) {
     ]);
     exit;
 }
-
 
 // Truy vấn danh sách lịch hẹn
 $sql = "

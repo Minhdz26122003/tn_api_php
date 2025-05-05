@@ -130,6 +130,29 @@ try {
         "Lịch hẹn của bạn đã được đặt vào ngày $appointment_date lúc $appointment_time.",
     );
 
+    // Lấy email user từ bảng users (ví dụ)
+    // $stmtEmail = $conn->prepare("SELECT email FROM users WHERE uid = ?");
+    // $stmtEmail->bind_param("i", $uid);
+    // $stmtEmail->execute();
+    // $resultEmail = $stmtEmail->get_result()->fetch_assoc();
+    // $stmtEmail->close();
+
+    // if (!empty($resultEmail['email'])) {
+    //     $userEmail = $resultEmail['email'];
+    //     // Gửi email xác nhận
+    //     $emailResult = $notifier->sendEmail(
+    //         $userEmail,
+    //         "Xác nhận lịch hẹn #$appointmentId",
+    //         "<p>Chào bạn,</p>
+    //         <p>Lịch hẹn #<strong>$appointmentId</strong> của bạn đã được đặt thành công vào
+    //         <strong>$appointment_date</strong> lúc <strong>$appointment_time</strong>.</p>
+    //         <p>Cảm ơn bạn đã sử dụng dịch vụ!</p>"
+    //     );
+    //     // (tuỳ chọn) Kiểm tra kết quả gửi email
+    //     if ($emailResult['error']['code'] !== 0) {
+    //         error_log('Email send error: ' . $emailResult['error']['message']);
+    //     }
+    // }
     // Trả về response
     echo json_encode([
         "status" => "success",

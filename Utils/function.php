@@ -3,7 +3,7 @@ require '../../vendor/autoload.php';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-date_default_timezone_set('UTC'); 
+date_default_timezone_set('Asia/Ho_Chi_Minh'); 
 $secretKey = "minh8386"; 
 define("SECRET_KEY", "minh8386");
 

@@ -10,6 +10,11 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
 checkToken();
+// $nowServer = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+// $serverTimeStr = $nowServer->format('Y-m-d H:i:s');
+
+// // (1) Nếu muốn log để xem trong error_log:
+// error_log("SERVER TIME: {$serverTimeStr}");
 
 $input = $_POST;
 if (empty($input)) {
@@ -44,7 +49,7 @@ $totalPage  = ceil($totalCount / $pageSize);
 // Lấy dữ liệu phân trang
 $offset = ($page - 1) * $pageSize;
 $stmt = $conn->prepare(
-  "SELECT uid, title, body, status, time_created
+  "SELECT noti_id, uid, title, body, status, time_created
    FROM notifications
    WHERE uid = ?
    ORDER BY time_created DESC
@@ -57,6 +62,7 @@ $result = $stmt->get_result();
 $items = [];
 while ($row = $result->fetch_assoc()) {
     $items[] = [
+        'noti_id'      => (int)$row['noti_id'],
         'uid'          => (int)$row['uid'],
         'title'        => $row['title'],
         'body'         => $row['body'],
