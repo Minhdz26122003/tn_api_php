@@ -35,7 +35,7 @@ if (!isValidKey($input['keyCert'], $input['time'])) {
 }
 
 // Validate uid và noti_id (id thông báo)
-if (!isset($input['uid'], $input['appointment_id'])) {
+if (!isset($input['uid'], $input['appointment_id'],$input['reason'])) {
     http_response_code(400);
     exit(json_encode([
       "status"=>"error",
@@ -44,14 +44,16 @@ if (!isset($input['uid'], $input['appointment_id'])) {
 }
 $uid  = (int)$input['uid'];
 $appointment_id = $conn->real_escape_string($input['appointment_id']);
+$reason = isset($input['reason']) ? $conn->real_escape_string($input['reason']) : '';
 
 // Cập nhật
 $stmt = $conn->prepare("
     UPDATE appointment
-    SET status = 4
+    SET status = 5,
+        reason = ?
     WHERE uid = ? AND appointment_id = ?
 ");
-$stmt->bind_param("ii", $uid, $appointment_id);
+$stmt->bind_param("sii", $reason, $uid, $appointment_id);
 $ok = $stmt->execute();
 $stmt->close();
 $conn->close();
@@ -59,13 +61,13 @@ $conn->close();
 if ($ok) {
     echo json_encode([
       "status"=>"success",
-      "error"=>["code"=>0,"message"=>"Đã chấp nhận báo giá"],
+      "error"=>["code"=>0,"message"=>"Hủy lịch hẹn thành công"],
     ]);
 } else {
     http_response_code(500);
     echo json_encode([
       "status"=>"error",
-      "error"=>["code"=>500,"message"=>"Không chấp nhận báo giá"]
+      "error"=>["code"=>500,"message"=>"Lỗi, không hủy được lịch hẹn"]
     ]);
 }
 ?>

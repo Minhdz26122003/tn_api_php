@@ -8,7 +8,7 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
-checkToken();  // xác thực token JWT, thiết lập $uid từ payload
+checkToken(); 
 
 $conn = getDBConnection();
 
@@ -34,7 +34,7 @@ if (!isValidKey($keyCert, $time)) {
     ]));
 }
 
-// 1) Lấy danh sách appointment
+// Lấy danh sách appointment
 $sqlAppt = "
   SELECT 
     ap.appointment_id,
@@ -79,7 +79,7 @@ if (empty($appointments)) {
     exit;
 }
 
-// 4) Lấy chi tiết service cho tất cả appointment vừa fetch
+// Lấy chi tiết service cho tất cả appointment vừa fetch
 $ids = array_keys($appointments);
 $placeholders = implode(',', array_fill(0, count($ids), '?'));
 $sqlSvc = "
