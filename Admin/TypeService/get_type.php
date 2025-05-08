@@ -34,36 +34,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($limit < 1) $limit = 5;
     $offset = ($page - 1) * $limit;
 
-    $countSql = "SELECT COUNT(*) as total FROM service";
+    $countSql = "SELECT COUNT(*) as total FROM service_type";
     $countStmt = $conn->prepare($countSql);
     $countStmt->execute();
     $countResult = $countStmt->get_result();
-    $totalService = 0;
+    $totalType = 0;
     if ($row = $countResult->fetch_assoc()) {
-        $totalService = intval($row['total']);
+        $totalType = intval($row['total']);
     }
     $countStmt->close();
 
     // Sửa câu truy vấn SQL
-    $sql = "SELECT * FROM service LIMIT ? OFFSET ?";
+    $sql = "SELECT * FROM service_type LIMIT ? OFFSET ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ii", $limit, $offset);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    $serviceList = [];
+    $typeList = [];
     while ($row = $result->fetch_assoc()) {
-        $serviceList[] = $row;
+        $typeList[] = $row;
     }
     $stmt->close();
 
-    $totalPages = ceil($totalService / $limit);
+    $totalPages = ceil($totalType / $limit);
 
     $response = array(
-        "data" => $serviceList,
+        "data" => $typeList,
         "currentPage" => $page,
         "totalPages" => $totalPages,
-        "totalService" => $totalService,
+        "totalType" => $totalType,
     );
     echo json_encode($response);
 } else {

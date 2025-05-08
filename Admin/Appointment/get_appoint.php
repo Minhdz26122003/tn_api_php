@@ -48,9 +48,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     $statusCounts = [
         'unconfirmed' => 0, // Chưa xác nhận
-        'in_progress' => 0, // Đang thực hiện
-        'completed' => 0,   // Hoàn thành
-        'paid' => 0,        // Đã thanh toán
+        'quote_appoint' => 0, // Đang báo giá 
+        'under_repair' => 0,   // Đang sửa
+        'settlement' => 0,        // Quyết toán
+        'pay'=> 0, // Thânh toán
+        'paid' => 0, // Đã thanh toán
         'canceled' => 0,    // Đã hủy
     ];
 
@@ -72,10 +74,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $status = intval($row['status']);
         $count = intval($row['count']);
         if ($status === 0) $statusCounts['unconfirmed'] = $count;
-        elseif ($status === 1) $statusCounts['in_progress'] = $count;
-        elseif ($status === 2) $statusCounts['completed'] = $count;
-        elseif ($status === 3) $statusCounts['paid'] = $count;
-        elseif ($status === 4) $statusCounts['canceled'] = $count;
+        elseif ($status === 1) $statusCounts['quote_appoint'] = $count;
+        elseif ($status === 2) $statusCounts['under_repair'] = $count;
+        elseif ($status === 3) $statusCounts['settlement'] = $count;
+        elseif ($status === 4) $statusCounts['pay'] = $count;
+        elseif ($status === 5) $statusCounts['paid'] = $count;
+        elseif ($status === 6) $statusCounts['canceled'] = $count;
     }
     $statusStmt->close();
 
@@ -84,16 +88,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         SELECT 
             lh.appointment_id,
             lh.uid,
-            tk.username,
-            lh.car_id,
-            cr.license_plate,
-            lh.gara_id,
-            tt.gara_name,
-            dv.service_name,
+            lh.car_id, 
+            lh.gara_id,      
+            lh.description, 
             lh.appointment_date, 
             lh.appointment_time,
             lh.status,
             lh.reason,
+            tk.username,
+            cr.license_plate,
+            tt.gara_name, 
             COALESCE(GROUP_CONCAT(DISTINCT dv.service_name SEPARATOR ', '), '') AS service_name
         FROM 
             appointment lh
@@ -111,11 +115,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             lh.appointment_id,
             lh.uid,
             tk.username,
+            lh.description, 
             lh.car_id,
             cr.license_plate,
             lh.gara_id,
-            tt.gara_name,
-            dv.service_name,
+            tt.gara_name,        
             lh.appointment_date, 
             lh.appointment_time,
             lh.status

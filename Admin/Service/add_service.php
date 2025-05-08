@@ -41,6 +41,7 @@ if (!$decodedData) {
 }
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
    $service_name = $decodedData['service_name'] ?? '';
+   $type_id = $decodedData['type_id'] ?? '';
    $description = $decodedData['description'] ?? '';
    $price = $decodedData['price'] ?? '';
    $service_img = $decodedData['service_img'] ?? '';
@@ -62,9 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ]);
         }
     } else {
-        $insertStmt = $conn->prepare("INSERT INTO service (service_name, description, price, service_img, time) 
-        VALUES (?, ?, ?, ?, ?)");
-        $insertStmt->bind_param("ssiss", $service_name, $description, $price, $service_img, $time);
+        $insertStmt = $conn->prepare("INSERT INTO service (service_name,type_id,description, price, service_img, time) 
+        VALUES (?, ?, ?, ?, ? ,?)");
+        $insertStmt->bind_param("sisiss", $service_name,$type_id, $description, $price, $service_img, $time);
         
         if ($insertStmt->execute()) {        
                
