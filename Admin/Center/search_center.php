@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
     if ($gara_name || $gara_address) {
         // Điều kiện WHERE linh hoạt theo các tham số
-        $query = "SELECT * FROM center WHERE 1=1";
+        $query = "SELECT * FROM gara WHERE 1=1";
         $params = [];
         $types = "";
 
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $stmt->bind_param($types, ...$params);
     } else {
         // Nếu không có từ khóa tìm kiếm, trả về tất cả trung tâm
-        $query = "SELECT * FROM center";
+        $query = "SELECT * FROM gara";
         $stmt = $conn->prepare($query);
     }
 

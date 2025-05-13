@@ -39,7 +39,7 @@ if (!isValidKey($keyCert, $time)) {
 }
 
 // Truy vấn danh sách loại dịch vụ
-$sql = "SELECT * FROM center ORDER BY gara_id DESC";
+$sql = "SELECT * FROM gara ORDER BY gara_id DESC";
 $result = $conn->query($sql);
 
 if ($result && $result->num_rows > 0) {

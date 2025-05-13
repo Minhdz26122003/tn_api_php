@@ -49,8 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $statusCounts = [
         'unconfirmed' => 0, // Chưa xác nhận
         'quote_appoint' => 0, // Đang báo giá 
+        'accepted_quote' => 0, // Chấp nhận báo giá
         'under_repair' => 0,   // Đang sửa
-        'settlement' => 0,        // Quyết toán
+        'completed' => 0, // Hoàn thành
+        'settlement' => 0, // Quyết toán
         'pay'=> 0, // Thânh toán
         'paid' => 0, // Đã thanh toán
         'canceled' => 0,    // Đã hủy
@@ -75,11 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $count = intval($row['count']);
         if ($status === 0) $statusCounts['unconfirmed'] = $count;
         elseif ($status === 1) $statusCounts['quote_appoint'] = $count;
-        elseif ($status === 2) $statusCounts['under_repair'] = $count;
-        elseif ($status === 3) $statusCounts['settlement'] = $count;
-        elseif ($status === 4) $statusCounts['pay'] = $count;
-        elseif ($status === 5) $statusCounts['paid'] = $count;
-        elseif ($status === 6) $statusCounts['canceled'] = $count;
+        elseif ($status === 2) $statusCounts['accepted_quote'] = $count;
+        elseif ($status === 3) $statusCounts['under_repair'] = $count;
+        elseif ($status === 4) $statusCounts['completed'] = $count;
+        elseif ($status === 5) $statusCounts['settlement'] = $count;
+        elseif ($status === 6) $statusCounts['pay'] = $count;
+        elseif ($status === 7) $statusCounts['paid'] = $count;
+        elseif ($status === 8) $statusCounts['canceled'] = $count;
     }
     $statusStmt->close();
 
@@ -106,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         LEFT JOIN 
             service dv ON lhdv.service_id = dv.service_id
         LEFT JOIN 
-            center tt ON lh.gara_id = tt.gara_id
+            gara tt ON lh.gara_id = tt.gara_id
         LEFT JOIN 
             car cr ON lh.car_id = cr.car_id
         LEFT JOIN 
@@ -119,6 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             lh.car_id,
             cr.license_plate,
             lh.gara_id,
+            lh.reason,
             tt.gara_name,        
             lh.appointment_date, 
             lh.appointment_time,

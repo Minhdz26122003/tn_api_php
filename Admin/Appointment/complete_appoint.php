@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($data['appointment_id'])) {
         $appointment_id = $data['appointment_id'];
 
-        $query = "UPDATE appointment SET status = 2 WHERE appointment_id = ?";
+        $query = "UPDATE appointment SET status = 4 WHERE appointment_id = ?";
         
 
         $stmt = $conn->prepare($query);

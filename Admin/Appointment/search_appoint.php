@@ -57,7 +57,7 @@ if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
     LEFT JOIN 
         service dv ON lhdv.service_id = dv.service_id
     LEFT JOIN 
-        center tt ON lh.gara_id = tt.gara_id
+        gara tt ON lh.gara_id = tt.gara_id
     LEFT JOIN 
         car cr ON lh.car_id = cr.car_id
     LEFT JOIN 

@@ -60,7 +60,7 @@ SELECT
 FROM 
     appointment ap 
 LEFT JOIN 
-    center tt  ON tt.gara_id = ap.gara_id
+    gara tt  ON tt.gara_id = ap.gara_id
 LEFT JOIN 
     car cr ON cr.car_id = ap.car_id
 LEFT JOIN

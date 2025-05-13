@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
    $x_location = $decodedData['x_location'] ?? '';
    $y_location = $decodedData['y_location'] ?? '';
   
-    $query = "UPDATE center SET gara_name = ?, gara_address = ?,  phone = ?,  email = ?, gara_img=? , x_location = ?, y_location = ? WHERE gara_id = ?";
+    $query = "UPDATE gara SET gara_name = ?, gara_address = ?,  phone = ?,  email = ?, gara_img=? , x_location = ?, y_location = ? WHERE gara_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param('sssssssi', $gara_name, $gara_address, $phone, $email, $gara_img, $x_location, $y_location, $gara_id);
 

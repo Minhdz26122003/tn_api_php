@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
     if (isset($data['gara_id'])) {
         $gara_id = $data['gara_id'];
     
-        $query = "DELETE FROM center WHERE gara_id = ?";
+        $query = "DELETE FROM gara WHERE gara_id = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param('i', $gara_id);
     

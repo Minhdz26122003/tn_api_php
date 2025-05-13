@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($limit < 1) $limit = 10;
     $offset = ($page - 1) * $limit;
 
-    $countSql = "SELECT COUNT(*) as total FROM center";
+    $countSql = "SELECT COUNT(*) as total FROM gara";
     $countStmt = $conn->prepare($countSql);
     $countStmt->execute();
     $countResult = $countStmt->get_result();
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $countStmt->close();
 
     // Sửa câu truy vấn SQL
-    $sql = "SELECT * FROM center LIMIT ? OFFSET ?";
+    $sql = "SELECT * FROM gara LIMIT ? OFFSET ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ii", $limit, $offset);
     $stmt->execute();

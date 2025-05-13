@@ -45,12 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
    $gara_address = $decodedData['gara_address'] ?? '';
    $phone = $decodedData['phone'] ?? '';
    $email = $decodedData['email'] ?? '';
-   $gara_img = $decodedData['service_img'] ?? '';
+   $gara_img = $decodedData['gara_img'] ?? '';
    $x_location = $decodedData['x_location'] ?? '';
    $y_location = $decodedData['y_location'] ?? '';
 
-   // Kiểm tra username hoặc email đã tồn tại chưa
-    $checkStmt = $conn->prepare("SELECT gara_name FROM center WHERE gara_name = ? ");
+    $checkStmt = $conn->prepare("SELECT gara_name FROM gara WHERE gara_name = ? ");
     $checkStmt->bind_param("s", $gara_name);
     $checkStmt->execute();
     $checkResult = $checkStmt->get_result();
@@ -65,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ]);
         }
     } else {
-        $insertStmt = $conn->prepare("INSERT INTO center (gara_name, gara_address, phone,email, gara_img, x_location,y_location) 
+        $insertStmt = $conn->prepare("INSERT INTO gara (gara_name, gara_address, phone,email, gara_img, x_location,y_location) 
         VALUES (?, ?, ?, ?, ?, ?, ?)");
         $insertStmt->bind_param("sssssss", $gara_name, $gara_address, $phone, $email, $gara_img, $x_location, $y_location);
         

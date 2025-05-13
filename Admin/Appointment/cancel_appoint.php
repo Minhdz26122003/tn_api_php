@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    $query = "UPDATE apointment SET status = 4, reason = ? WHERE appointment_id = ?";
+    $query = "UPDATE apointment SET status =6, reason = ? WHERE appointment_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param('si', $reason, $appointment_id);
 
