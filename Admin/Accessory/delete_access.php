@@ -1,6 +1,7 @@
 <?php
 require_once "../../Config/connectdb.php";
 require_once "../../Utils/function.php";
+require_once "../../Utils/verify_token.php";
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -26,30 +27,26 @@ if (!verifyToken($token)) {
     $conn->close();
     exit();
 }
+// Lấy dữ liệu từ yêu cầu JSON
 $data = json_decode(file_get_contents("php://input"), true);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($data['appointment_id'])) {
-        $appointment_id = $data['appointment_id'];
-
-      
-        $query = "UPDATE appointment SET status = 3 WHERE appointment_id = ?";
+if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
+    if (isset($data['accessory_id'])) {
+        $accessory_id = $data['accessory_id'];
+    
+        $query = "DELETE FROM accessory WHERE accessory_id = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param('i', $appointment_id);
-
-        if ($stmt->execute()) {
-            echo json_encode(['success' => true, 'message' => 'Lịch hẹn đã được thanh toán.']);
+        $stmt->bind_param('i', $accessory_id);
+    
+        if ($stmt->execute()) { 
+            echo json_encode(['success' => true, 'message' => 'Xóa phụ tùng thành công']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Xác nhận lịch hẹn chưa được thanh toán.']);
+            echo json_encode(['success' => false, 'message' => 'Xóa phụ tùng không thành công']);
         }
 
         $stmt->close();
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Thiếu thông tin appointment_id.']);
+    }else{
+        echo json_encode(['success' => false, 'message' => 'Thiếu mã phụ tùng']);
     }
-} else {
-    echo json_encode(['message' => 'Phương thức không được hỗ trợ.']);
 }
-
-$conn->close();
 ?>
