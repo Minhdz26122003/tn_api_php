@@ -85,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         elseif ($status === 6) $statusCounts['pay'] = $count;
         elseif ($status === 7) $statusCounts['paid'] = $count;
         elseif ($status === 8) $statusCounts['canceled'] = $count;
+       
     }
     $statusStmt->close();
 

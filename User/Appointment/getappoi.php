@@ -53,7 +53,7 @@ $sqlAppt = "
   FROM appointment ap
   LEFT JOIN car cr ON cr.car_id = ap.car_id
   LEFT JOIN gara ct ON ct.gara_id = ap.gara_id
-  WHERE ap.uid = ? AND ap.status != 5
+  WHERE ap.uid = ? AND ap.status != 8
   ORDER BY ap.appointment_id DESC
 ";
 $stmt = $conn->prepare($sqlAppt);

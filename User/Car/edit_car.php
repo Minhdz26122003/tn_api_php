@@ -7,7 +7,8 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
-checkToken(); // Gọi hàm kiểm tra token trước khi xử lý
+
+checkToken(); 
 $conn = getDBConnection();
 
 $raw   = file_get_contents("php://input");
