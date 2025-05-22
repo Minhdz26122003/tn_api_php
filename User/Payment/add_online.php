@@ -1,8 +1,7 @@
 <?php
-// File: apihm/User/Payment/add_online.php
 require_once "../../Config/connectdb.php";
-require_once "../../Utils/function.php"; // Chứa hàm Utils.generateMd5 nếu có
-require_once "../../Utils/verify_token.php"; // Để xác thực người dùng
+require_once "../../Utils/function.php";
+require_once "../../Utils/verify_token.php"; 
 require_once "../../Utils/verify_token_user.php";
 
 ini_set('display_errors', 1);
@@ -13,14 +12,14 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
-header("Content-Type: application/json"); // Chỉ cần đặt một lần
+header("Content-Type: application/json"); 
 
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 checkToken();
 
 $conn = getDBConnection();
-// Xử lý các yêu cầu pre-flight OPTIONS
+
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit(0);
 }
@@ -42,7 +41,7 @@ if (!isset($input['keyCert'], $input['time'], $input['appointment_id'], $input['
 }
 $appointment_id = (int) $input['appointment_id'];
 $total_price_input = (float) $input['total_price'];
-$uid = (int) $input['uid']; // Lấy UID từ input
+$uid = (int) $input['uid']; 
 $keyCert = $input['keyCert'];
 $time = $input['time'];
 
@@ -56,9 +55,8 @@ if (!isValidKey($keyCert, $time)) {
 }
 
 $appointment_id = $input['appointment_id'] ?? null;
-// THAY ĐỔI: Lấy 'total_price' để khớp với Flutter (hoặc có thể dùng 'amount' tùy bạn)
 $total_price_from_flutter = isset($input['total_price']) ? (float)$input['total_price'] : 0;
-$uid_from_flutter = $input['uid'] ?? null; // Đảm bảo Flutter gửi uid
+$uid_from_flutter = $input['uid'] ?? null; 
 
 // Validate input
 if (!$appointment_id || $total_price_from_flutter <= 0 || !$uid_from_flutter) {
@@ -76,7 +74,7 @@ $payment_database_id = 0; // Đây sẽ là payment_id của bản ghi đã tồ
 
 try {
     // 1. Tìm bản ghi thanh toán đã tồn tại với appointment_id và status = 0 (chưa thanh toán)
-    // Cần đảm bảo chỉ lấy bản ghi payment_id duy nhất và mới nhất nếu có nhiều
+
     $stmtFindPayment = $conn->prepare("SELECT payment_id, status, form, total_price FROM payment WHERE appointment_id = ? AND status = 0 ORDER BY payment_id DESC LIMIT 1");
     if (!$stmtFindPayment) {
         throw new Exception("Lỗi chuẩn bị câu lệnh (tìm payment): " . $conn->error);
@@ -95,13 +93,13 @@ try {
         "error"  => ["code" => 404, "message" => "Không tìm thấy bản ghi thanh toán chưa xử lý cho lịch hẹn này."],
         "data"   => null
     ]);
-    exit; // Thoát nếu không tìm thấy
+    exit; 
 }
 
     $payment_database_id = $existingPayment['payment_id'];
     $existing_total_price = $existingPayment['total_price'];
 
-    // Kiểm tra số tiền có khớp không (nếu cần)
+    
     if ($existing_total_price != $total_price_from_flutter) {
         throw new Exception("Số tiền gửi lên không khớp với số tiền trong bản ghi thanh toán đã tồn tại.");
     }
@@ -110,14 +108,14 @@ try {
     // Cập nhật status thành 0 (đang chờ VNPAY - thì là chưa thanh toán 0), form thành 1 (online), và payment_date
     $payment_status_pending_vnpay = 0; // Trạng thái: đang chờ thanh toán VNPAY
     $payment_form_online = 1; // Form: online
-    $current_payment_date = date('Y-m-d H:i:s'); // Định dạng phù hợp với cột DATETIME
+    $current_payment_date = date('Y-m-d H:i:s'); 
 
     $sqlUpdatePayment = "UPDATE payment SET payment_date = ?, form = ?, status = ? WHERE payment_id = ?";
     $stmtUpdatePayment = $conn->prepare($sqlUpdatePayment);
     if (!$stmtUpdatePayment) {
         throw new Exception("Lỗi chuẩn bị câu lệnh (cập nhật payment): " . $conn->error);
     }
-    // Bind các tham số: s (string), i (integer), i (integer), i (integer)
+  
     $stmtUpdatePayment->bind_param("siii", $current_payment_date, $payment_form_online, $payment_status_pending_vnpay, $payment_database_id);
     $stmtUpdatePayment->execute();
 
@@ -126,8 +124,7 @@ try {
     }
     $stmtUpdatePayment->close();
 
-    // 3. Cập nhật trạng thái lịch hẹn sang "Đang chờ thanh toán VNPAY" thfi là vẫn chưa thanh toán 6)
-    // Nếu bạn muốn đồng bộ trạng thái lịch hẹn với trạng thái payment_status_pending_vnpay
+    // 3. Cập nhật trạng thái lịch hẹn sang "Đang chờ thanh toán VNPAY" thi là vẫn chưa thanh toán 6)
     $appointment_status_pending_vnpay = 6;
     $stmtUpdateLichHen = $conn->prepare("UPDATE appointment SET status = ? WHERE appointment_id = ?");
     if (!$stmtUpdateLichHen) {
@@ -165,8 +162,8 @@ $vnp_ExpireDate = date('YmdHis', strtotime('+15 minutes', time())); // Hạn tha
 $vnp_IpAddr = $_SERVER['REMOTE_ADDR'] ?? ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '127.0.0.1');
 
 // === Require configVnpay.php SAU KHI các biến động đã được định nghĩa ===
-// Đảm bảo configVnpay.php chỉ chứa các cấu hình TĨNH như TmnCode, HashSecret, VnpUrl, Returnurl.
-require_once "../../Utils/configVnpay.php"; // Dòng này phải nằm ở đây
+
+require_once "../../Utils/configVnpay.php"; 
 
 $inputData = array(
     "vnp_Version" => "2.1.0",
@@ -181,7 +178,7 @@ $inputData = array(
     "vnp_OrderType" => $vnp_OrderType,
     "vnp_ReturnUrl" => $vnp_Returnurl,
     "vnp_TxnRef" => $vnp_TxnRef,
-    "vnp_ExpireDate" => $vnp_ExpireDate, // Thêm hạn thanh toán
+    "vnp_ExpireDate" => $vnp_ExpireDate, 
 );
 
 if (isset($vnp_BankCode) && $vnp_BankCode != "") {

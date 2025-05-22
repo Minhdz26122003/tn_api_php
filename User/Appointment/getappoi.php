@@ -53,7 +53,7 @@ $sqlAppt = "
   FROM appointment ap
   LEFT JOIN car cr ON cr.car_id = ap.car_id
   LEFT JOIN gara ct ON ct.gara_id = ap.gara_id
-  WHERE ap.uid = ? AND ap.status != 8
+  WHERE ap.uid = ?
   ORDER BY ap.appointment_id DESC
 ";
 $stmt = $conn->prepare($sqlAppt);
@@ -88,7 +88,7 @@ $sqlSvc = "
     s.service_name,
     s.service_img,
     s.price,
-    s.time AS est_time
+    s.time 
   FROM detail_appointment aps
   JOIN service s ON s.service_id = aps.service_id
   WHERE aps.appointment_id IN ($placeholders)
@@ -113,7 +113,7 @@ while ($r = $res2->fetch_assoc()) {
       'service_name' => $r['service_name'],
       'service_img'  => $r['service_img'],
       'price'        => $r['price'],
-      'time'         => $r['est_time'],
+      'time'         => $r['time'],
     ];
 }
 $stmt->close();

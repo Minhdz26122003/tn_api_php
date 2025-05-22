@@ -2,7 +2,9 @@
 require_once "../../Config/connectdb.php";
 require_once "../../Utils/function.php";
 require_once "../../Utils/verify_token_user.php";
-
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
@@ -92,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "manufacturer" => $manufacturer,
                     "year_manufacture" => $year_manufacture
                 ],
+                "status" => "success",
                 "error" => ["code" => 0, "message" => "Thêm xe thành công"]
             ]);
         } else {

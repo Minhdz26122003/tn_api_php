@@ -68,3 +68,6 @@
 [2025-05-21 22:21:06] ------ IPN REQUEST RECEIVED ------
 [2025-05-21 22:21:06] GET Data: {"vnp_Amount":"108000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14971658","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan lich hen #39 - Payment ID: 9 - User ID: 1","vnp_PayDate":"20250521222122","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14971658","vnp_TransactionStatus":"00","vnp_TxnRef":"9","vnp_SecureHash":"762dfc1c5bb8be15bf6e12dfe88d94b9bd953f6f9841d112663e7cc9515709b0ec6abe238f2cd6febb0824b81559e8869f5ae59f3fc6cf3cfc5d0ccd1a6c5dc0"}
 [2025-05-21 22:21:06] IPN: Payment SUCCESS for payment_id: 9
+[2025-05-22 22:36:24] ------ IPN REQUEST RECEIVED ------
+[2025-05-22 22:36:24] GET Data: {"vnp_Amount":"130000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14973969","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan lich hen #34 - Payment ID: 10 - User ID: 1","vnp_PayDate":"20250522223638","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14973969","vnp_TransactionStatus":"00","vnp_TxnRef":"10","vnp_SecureHash":"61ae8c92dd7d0b467c726ef12702cb015d6ea72525367ca250a4b6ca79a6192807ba419218948b323e42cf82d4b8249e86b7b5069fc1bf52e0fceb855fa61ee9"}
+[2025-05-22 22:36:24] IPN: Payment SUCCESS for payment_id: 10

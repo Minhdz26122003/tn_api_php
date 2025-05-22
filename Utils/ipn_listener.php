@@ -1,5 +1,4 @@
 <?php
-// File: apihm/Utils/ipn_listener.php
 require_once __DIR__ .'/../Config/connectdb.php'; 
 require_once __DIR__ .'/../Utils/configVnpay.php';
 
@@ -7,12 +6,12 @@ require_once __DIR__ .'/../Utils/configVnpay.php';
 // error_reporting(E_ALL);
 // ini_set('display_errors', 1);
 
-header("Content-Type: application/json"); // Trả về JSON cho VNPAY
+header("Content-Type: application/json"); 
 
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 $conn = getDBConnection();
-// Đường dẫn file log (đảm bảo thư mục có quyền ghi)
-$log_file = __DIR__ . '/vnpay_ipn_debug_log.txt'; // File log cùng thư mục
+// Đường dẫn file log 
+$log_file = __DIR__ . '/vnpay_ipn_debug_log.txt'; 
 
 // Hàm ghi log để debug
 function write_log($message) {
@@ -45,7 +44,7 @@ try {
     $conn->begin_transaction();
 
     if ($vnp_SecureHash === $secureHash) {
-        $payment_id_ref = $_GET['vnp_TxnRef'] ?? null; // Đây là payment_id từ DB của bạn
+        $payment_id_ref = $_GET['vnp_TxnRef'] ?? null; // Đây là payment_id từ DB c
         $vnp_ResponseCode = $_GET['vnp_ResponseCode'] ?? '99';
         $vnp_TransactionStatus = $_GET['vnp_TransactionStatus'] ?? '99';
         $vnp_Amount_vnpay = ($_GET['vnp_Amount'] ?? 0) / 100; // Số tiền từ VNPAY, chia 100 để về VND
@@ -71,7 +70,7 @@ try {
             $appointment_id = $paymentData['appointment_id'];
             $total_price_db = $paymentData['total_price'];
 
-            // Chỉ xử lý nếu trạng thái thanh toán đang là chờ VNPAY (7) hoặc chưa thanh toán (0)
+            // Chỉ xử lý nếu trạng thái thanh toán đang là chờ VNPAY hoặc chưa thanh toán (0)
             // Tránh xử lý lại các giao dịch đã hoàn tất thành công (status = 1)
             if ($currentPaymentStatus == 7 || $currentPaymentStatus == 0) {
                 if ($vnp_ResponseCode == '00' && $vnp_TransactionStatus == '00') {
