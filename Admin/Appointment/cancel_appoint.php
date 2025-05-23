@@ -27,7 +27,6 @@ if (!verifyToken($token)) {
     $conn->close();
     exit();
 }
-
 // Lấy dữ liệu từ yêu cầu JSON
 $data = json_decode(file_get_contents("php://input"), true);
 
@@ -40,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    $query = "UPDATE apointment SET status =6, reason = ? WHERE appointment_id = ?";
+    $query = "UPDATE appointment SET status = 8, reason = ? WHERE appointment_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param('si', $reason, $appointment_id);
 

@@ -50,8 +50,8 @@ $where = [];
 switch ($filter) {
   case 1:  $where[] = "status = 0";                  break; // chưa thanh toán
   case 2:  $where[] = "status = 1";                  break; // đã thanh toán
-  case 3:  $where[] = "status = 1 AND form = 1";     break; // offline
-  case 4:  $where[] = "status = 1 AND form = 2";     break; // online
+  case 3:  $where[] = "status = 1 AND form = 1";     break; // online
+  case 4:  $where[] = "status = 1 AND form = 2";     break; // offline
   default: /* 0 hoặc các giá trị khác = all */      break;
 }
 $where_sql = $where ? "WHERE ".implode(" AND ", $where) : "";
@@ -66,8 +66,8 @@ $statsSql = "
     COUNT(*) AS all_count,
     SUM(status=0) AS unpaid,
     SUM(status=1) AS paid,
-    SUM(status=1 AND form=1) AS paid_offline,
-    SUM(status=1 AND form=2) AS paid_online
+    SUM(status=1 AND form=1) AS paid_online,
+    SUM(status=1 AND form=2) AS  paid_offline
   FROM payment
 ";
 $stats = $conn->query($statsSql)->fetch_assoc();
