@@ -28,23 +28,23 @@ if (!verifyToken($token)) {
     exit();
 }
 try {
-    $sql = "SELECT COUNT(appointment_id) AS total_appoi FROM appointment WHERE status = 0";
+    $sql = "SELECT COUNT(uid) AS total_user FROM users WHERE status != 3";
     $result = $conn->query($sql);
 
     if ($result === false) {
         throw new Exception($conn->error);
     }
 
-    $total_appoi = $result->fetch_assoc()['total_appoi'];
+    $total_user = $result->fetch_assoc()['total_user'];
 
     echo json_encode([
         'success' => true,
-        'total_appoi' => $total_appoi,
+        'total_user' => (float)$total_user,
     ]);
 } catch (Exception $e) {
     echo json_encode([
         'success' => false,
-        'message' => 'Error retrieving service statistics',
+        'message' => 'Error retrieving users statistics',
         'error' => $e->getMessage()
     ]);
 }
