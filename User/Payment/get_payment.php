@@ -54,7 +54,7 @@ $result = $stmt->get_result();
 if ($row = $result->fetch_assoc()) {
     echo json_encode([
         "status"=>"success",
-        "error"=>["code"=>0, "message"=>"Lưu thông tin thanh toán thành công"],
+        "error"=>["code"=>0, "message"=>"Lấy thông tin thanh toán thành công"],
         "data"=>$row
     ]);
 } else {

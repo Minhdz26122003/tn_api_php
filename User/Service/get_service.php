@@ -38,7 +38,7 @@ if (!isValidKey($keyCert, $time)) {
 }
 
 // Truy vấn danh sách loại dịch vụ
-$sql = "SELECT service_id, service_name ,type_id FROM service ORDER BY service_id DESC";
+$sql = "SELECT service_id, service_name ,type_id, price FROM service WHERE is_deleted = 0 ORDER BY service_id DESC";
 $result = $conn->query($sql);
 
 if ($result && $result->num_rows > 0) {

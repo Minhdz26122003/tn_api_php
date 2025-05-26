@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
     if (isset($data['service_id'])) {
         $service_id = $data['service_id'];
     
-        $query = "DELETE FROM service WHERE service_id = ?";
+        $query = "UPDATE service SET is_deleted = 1 WHERE service_id = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param('i', $service_id);
     

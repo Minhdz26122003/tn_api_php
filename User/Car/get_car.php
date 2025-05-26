@@ -45,7 +45,7 @@ if ($uid) {
     $stmt = $conn->prepare("SELECT cr.car_id, cr.license_plate, cr.name, cr.manufacturer, cr.year_manufacture, us.email 
                             FROM car cr 
                             INNER JOIN users us ON cr.uid = us.uid 
-                            WHERE us.uid = ? AND cr.status = 0");
+                            WHERE us.uid = ? AND cr.is_deleted = 0");
     if (!$stmt) {
         echo json_encode([
             "status" => "error",

@@ -49,6 +49,7 @@ $sql = "
     s.service_id, s.service_name, s.service_img, s.price, s.description
   FROM service_type st
   LEFT JOIN service s ON s.type_id = st.type_id
+    WHERE st.is_deleted = 0 AND s.is_deleted = 0
   ORDER BY st.type_id DESC, s.service_name ASC
 ";
 $result = $conn->query($sql);

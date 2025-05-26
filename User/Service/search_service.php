@@ -49,7 +49,7 @@ if (!isValidKey($keyCert, $time)) {
 $sql = "SELECT s.service_id, s.service_name, s.description, s.service_img, s.type_id, s.price, s.time 
         FROM service s
         JOIN service_type t ON s.type_id = t.type_id
-        WHERE (s.service_name LIKE ? OR s.description LIKE ?)"; // Bọc điều kiện LIKE trong ngoặc đơn
+        WHERE (s.service_name LIKE ? OR s.description LIKE ? AND is_deleted = 0)"; // Bọc điều kiện LIKE trong ngoặc đơn
 
 $params = [$queryStr, $queryStr];
 $types = "ss";

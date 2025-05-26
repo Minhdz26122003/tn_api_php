@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($limit < 1) $limit = 5;
     $offset = ($page - 1) * $limit;
 
-    $countSql = "SELECT COUNT(*) as total FROM service_type";
+    $countSql = "SELECT COUNT(*) as total FROM service_type WHERE is_deleted = 0";
     $countStmt = $conn->prepare($countSql);
     $countStmt->execute();
     $countResult = $countStmt->get_result();
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $countStmt->close();
 
     // Sửa câu truy vấn SQL
-    $sql = "SELECT * FROM service_type LIMIT ? OFFSET ?";
+    $sql = "SELECT * FROM service_type WHERE is_deleted = 0 LIMIT ? OFFSET ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ii", $limit, $offset);
     $stmt->execute();

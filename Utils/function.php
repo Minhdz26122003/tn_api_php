@@ -37,11 +37,11 @@ function getPermissionsByRole($status) {
 
     if ($status == 1) { // Admin
         $permissions = [
-            'dashboard', 'account', 'service', 'gara',
-            'appointment', 'payment', 'review', 'accessory','profile'
+            'dashboard', 'account', 'service', 'gara','typeservice',
+            'appointment', 'payment','accessory','profile'
         ];
     } else if ($status == 2) { // Nhân viên
-        $permissions = ['dashboard', 'accessory', 'appointment', 'profile', 'review', 'payment'];
+        $permissions = ['dashboard', 'accessory', 'appointment', 'typeservice', 'profile', 'payment'];
     }
 
     return $permissions;

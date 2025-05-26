@@ -34,10 +34,11 @@ if (!isValidKey($keyCert, $time)) {
     ]));
 }
 
-// Lấy danh sách appointment
+// 1) Lấy danh sách appointment
 $sqlAppt = "
   SELECT 
     ap.appointment_id,
+    ap.uid,
     ap.car_id,
     cr.license_plate,
     ap.gara_id,
@@ -62,8 +63,6 @@ $res = $stmt->get_result();
 
 $appointments = [];
 while ($row = $res->fetch_assoc()) {
-    // khởi tạo mảng services rỗng
-    $row['services'] = [];
     $appointments[$row['appointment_id']] = $row;
 }
 $stmt->close();
@@ -72,14 +71,14 @@ $stmt->close();
 if (empty($appointments)) {
     echo json_encode([
       "status"=>"success",
-      "error"=>["code"=>0,"message"=>"Không có lịch hẹn nào"],
+      "error"=>["code"=>0,"message"=>"Không có dữ liệu"],
       "items"=>[]
     ]);
     $conn->close();
     exit;
 }
 
-// Lấy chi tiết service cho tất cả appointment vừa fetch
+// 2) Lấy tất cả service cho những appointment trên
 $ids = array_keys($appointments);
 $placeholders = implode(',', array_fill(0, count($ids), '?'));
 $sqlSvc = "
@@ -89,7 +88,7 @@ $sqlSvc = "
     s.service_name,
     s.service_img,
     s.price,
-    s.time AS est_time
+    s.time 
   FROM detail_appointment aps
   JOIN service s ON s.service_id = aps.service_id
   WHERE aps.appointment_id IN ($placeholders)
@@ -103,61 +102,27 @@ $stmt->bind_param($types, ...$ids);
 $stmt->execute();
 $res2 = $stmt->get_result();
 
+// gán vào từng appointment
 while ($r = $res2->fetch_assoc()) {
     $aid = $r['appointment_id'];
+    if (!isset($appointments[$aid]['services'])) {
+        $appointments[$aid]['services'] = [];
+    }
     $appointments[$aid]['services'][] = [
       'service_id'   => $r['service_id'],
       'service_name' => $r['service_name'],
       'service_img'  => $r['service_img'],
       'price'        => $r['price'],
-      'time'         => $r['est_time'],
+      'time'         => $r['time'],
     ];
 }
-
-// Lấy serviceInvoice**: tổng `total_price` trong `payment`
-$sqlPay = "
-  SELECT appointment_id,
-         SUM(total_price) AS service_total
-    FROM payment
-   WHERE appointment_id IN ($placeholders)
-   GROUP BY appointment_id
-";
-$stmt = $conn->prepare($sqlPay);
-$stmt->bind_param($types, ...$ids);
-$stmt->execute();
-$res3 = $stmt->get_result();
-while($r = $res3->fetch_assoc()){
-  $aid = $r['appointment_id'];
-  $appointments[$aid]['serviceInvoice'] = (float)$r['service_total'];
-}
 $stmt->close();
-
-// Lấy partsInvoice**: tổng (price * quantity) của phụ tùng
-$sqlPart = "
-  SELECT aps.appointment_id,
-         SUM(acc.price * aps.quantity) AS parts_total
-    FROM accessory_payment aps
-    JOIN accessory acc ON acc.accessory_id = aps.accessory_id
-   WHERE aps.appointment_id IN ($placeholders)
-   GROUP BY aps.appointment_id
-";
-$stmt = $conn->prepare($sqlPart);
-$stmt->bind_param($types, ...$ids);
-$stmt->execute();
-$res4 = $stmt->get_result();
-while($r = $res4->fetch_assoc()){
-  $aid = $r['appointment_id'];
-  $appointments[$aid]['partsInvoice'] = (float)$r['parts_total'];
-}
-$stmt->close();
-
-// Đóng kết nối và trả về JSON
 $conn->close();
 
+// 3) Trả về kết quả
 echo json_encode([
   "status"=>"success",
   "error"=>["code"=>0,"message"=>"Success"],
   "items"=>array_values($appointments)
 ]);
-
 ?>

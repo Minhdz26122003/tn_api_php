@@ -42,7 +42,7 @@ if (!isValidKey($keyCert, $time)) {
     exit;
 }
 
-$stmt = $conn->prepare("UPDATE car SET status = 1 WHERE car_id = ?");
+$stmt = $conn->prepare("UPDATE car SET is_deleted = 1 WHERE car_id = ?");
 $stmt->bind_param("i", $carId);
 if ($stmt->execute()) {
     if ($stmt->affected_rows > 0) {

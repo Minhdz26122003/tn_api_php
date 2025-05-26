@@ -45,7 +45,7 @@ if (!isValidKey($keyCert, $time)) {
 }
 
 // Truy vấn chỉ lấy loại dịch vụ
-$sql = "SELECT type_id, type_name FROM service_type ORDER BY type_id ASC";
+$sql = "SELECT type_id, type_name FROM service_type WHERE is_deleted = 0 ORDER BY type_id ASC";
 $result = $conn->query($sql);
 
 $types = [];

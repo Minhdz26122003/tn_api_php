@@ -31,22 +31,22 @@ if (!verifyToken($token)) {
 $data = json_decode(file_get_contents("php://input"), true);
 
 if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-    if (isset($data['accessory_id'])) {
-        $accessory_id = $data['accessory_id'];
+    if (isset($data['type_id'])) {
+        $type_id = $data['type_id'];
     
-        $query = "UPDATE accessory SET is_deleted = 1 WHERE accessory_id = ?";
+        $query = "UPDATE service_type SET is_deleted = 1 WHERE type_id = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param('i', $accessory_id);
+        $stmt->bind_param('i', $type_id);
     
         if ($stmt->execute()) { 
-            echo json_encode(['success' => true, 'message' => 'Xóa phụ tùng thành công']);
+            echo json_encode(['success' => true, 'message' => 'Xóa danh mục thành công']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Xóa phụ tùng không thành công']);
+            echo json_encode(['success' => false, 'message' => 'Xóa danh mục không thành công']);
         }
 
         $stmt->close();
     }else{
-        echo json_encode(['success' => false, 'message' => 'Thiếu mã phụ tùng']);
+        echo json_encode(['success' => false, 'message' => 'Thiếu mã danh mục']);
     }
 }
 ?>
