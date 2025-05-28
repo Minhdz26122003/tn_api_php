@@ -40,6 +40,7 @@ if (!isValidKey($keyCert, $time)) {
 }
 
 // Truy vấn danh sách lịch hẹn
+// Điều chỉnh lại câu SQL để lấy được thông tin service_name và description của service
 $sql = "
 SELECT 
     ap.appointment_id,
@@ -55,8 +56,12 @@ SELECT
     ap.status,
     ap.description,
     ap.created_at,
-    ap.reason
-    
+    ap.reason,
+    GROUP_CONCAT(sv.service_name SEPARATOR ', ') AS service_names,
+    GROUP_CONCAT(sv.description SEPARATOR '|||') AS service_descriptions,
+    GROUP_CONCAT(sv.price SEPARATOR ', ') AS service_prices,
+    GROUP_CONCAT(sv.time SEPARATOR ', ') AS service_times
+
 FROM 
     appointment ap 
 LEFT JOIN 
@@ -65,8 +70,12 @@ LEFT JOIN
     car cr ON cr.car_id = ap.car_id
 LEFT JOIN
     users tk ON tk.uid = ap.uid
-WHERE ap.uid = AND ap.status= 3 ? 
-
+LEFT JOIN
+    appointment_service aps ON aps.appointment_id = ap.appointment_id
+LEFT JOIN
+    service sv ON sv.service_id = aps.service_id
+WHERE ap.uid = ? AND ap.status IN (3, 7, 8) 
+GROUP BY ap.appointment_id
 ORDER BY 
     ap.appointment_id DESC";
 

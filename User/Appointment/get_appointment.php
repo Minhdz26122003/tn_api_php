@@ -40,9 +40,14 @@ $sqlAppt = "
     ap.appointment_id,
     ap.uid,
     ap.car_id,
+    us.fullname,
+    us.phonenum,
+    us.email,
+    cr.name,
     cr.license_plate,
     ap.gara_id,
     ct.gara_name,
+    ct.phone,
     ct.gara_address,
     ap.appointment_date,
     ap.appointment_time,
@@ -53,6 +58,7 @@ $sqlAppt = "
   FROM appointment ap
   LEFT JOIN car cr ON cr.car_id = ap.car_id
   LEFT JOIN gara ct ON ct.gara_id = ap.gara_id
+  LEFT JOIN users us ON us.uid = ap.uid
   WHERE ap.uid = ?
   ORDER BY ap.appointment_id DESC
 ";
