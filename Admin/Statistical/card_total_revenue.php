@@ -16,7 +16,7 @@ if ($conn->connect_error) {
         "success" => false,
         "message" => "Kết nối thất bại: " . $conn->connect_error
     ]);
-    exit(); // Sử dụng exit() thay vì die() để trả về JSON hợp lệ
+    exit();
 }
 
 // Lấy token từ header
@@ -37,7 +37,7 @@ try {
     // Chỉ tính cho các lịch hẹn đã hoàn thành (status = 7) và đã thanh toán (payment.status = 1)
     $sql = "
         SELECT 
-            p.total_price AS total_revenue
+            SUM(p.total_price) AS total_revenue
         FROM 
             appointment AS a
         JOIN 
@@ -53,10 +53,11 @@ try {
     }
 
     $row = $result->fetch_assoc();
-    $total_revenue = $row['total_revenue'] ?? 0;
+    // Đảm bảo rằng total_revenue là một số, nếu không có kết quả thì mặc định là 0
+    $total_revenue = $row['total_revenue'] ?? 0; 
     echo json_encode([
         'success' => true,
-        'total_revenue' => (float)$total_revenue, // Ép kiểu thành float để đảm bảo đúng kiểu dữ liệu số
+        'total_revenue' => (float)$total_revenue,
     ]);
 
 } catch (Exception $e) {

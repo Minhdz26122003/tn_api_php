@@ -1,4 +1,5 @@
 <?php
+// get_payment_detail.php
 require_once "../../Config/connectdb.php";
 require_once "../../Utils/function.php";
 require_once "../../Utils/verify_token_user.php";
@@ -39,23 +40,33 @@ $appointment_id = intval($input['appointment_id']);
 if (!isValidKey($keyCert, $time)) {
     echo json_encode([
         "status" => "error",
-        "error"  => ["code" => 403, "message" => "KeyCert không hợp lệ"],
+        "error"  => ["code" => 403, "message" => "KeyCert không hợp lệ hoặc hết hạn"],
         "data"   => null
-    ], JSON_UNESCAPED_UNICODE);
+    ]);
     exit;
 }
 
-//Kiểm tra uid tồn tại
-$stmt = $conn->prepare("SELECT uid FROM users WHERE uid = ?");
-$stmt->bind_param("s", $uid);
+// Lấy thông tin cuộc hẹn để kiểm tra uid
+$sql = "SELECT uid FROM appointment WHERE appointment_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $appointment_id);
 $stmt->execute();
-$stmt->store_result();
-if ($stmt->num_rows === 0) {
+$result = $stmt->get_result();
+if ($result->num_rows === 0) {
     echo json_encode([
         "status" => "error",
-        "error"  => ["code" => 404, "message" => "User không tồn tại"],
+        "error"  => ["code" => 404, "message" => "Không tìm thấy cuộc hẹn"],
         "data"   => null
-    ], JSON_UNESCAPED_UNICODE);
+    ]);
+    exit;
+}
+$appointment_info = $result->fetch_assoc();
+if ($appointment_info['uid'] != $uid) {
+     echo json_encode([
+        "status" => "error",
+        "error"  => ["code" => 403, "message" => "Bạn không có quyền truy cập cuộc hẹn này"],
+        "data"   => null
+    ]);
     exit;
 }
 $stmt->close();
@@ -85,21 +96,43 @@ $stmt2->execute();
 $parts = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt2->close();
 
+
+
+// Lấy số tiền đặt cọc từ bảng deposits
+$deposit_amount = 0.0;
+$stmtDeposit = $conn->prepare("SELECT amount FROM deposits WHERE appointment_id = ? AND status = 1");
+$stmtDeposit->bind_param("i", $appointment_id);
+$stmtDeposit->execute();
+$resultDeposit = $stmtDeposit->get_result();
+
+if ($resultDeposit->num_rows > 0) {
+    $rowDeposit = $resultDeposit->fetch_assoc();
+    $deposit_amount = floatval($rowDeposit['amount']);
+}
+$stmtDeposit->close();
+
 // Tính tổng
 $service_total = array_sum(array_map(fn($r)=>(float)$r['price'],      $services));
-$parts_total   = array_sum(array_map(fn($r)=>(float)$r['sub_total'],   $parts));
-$total         = $service_total + $parts_total;
+$parts_total   = array_sum(array_map(fn($r)=>(float)$r['sub_total'],  $parts));
+$total_all     = ($service_total + $parts_total);
+$total_after     = ($service_total + $parts_total)-$deposit_amount;
+// Đảm bảo tổng tiền cuối cùng không âm
+if ($total_all < 0) {
+    $total_all = 0.0;
+}
 
-// Trả về
+
 echo json_encode([
     "status" => "success",
-    "error"  => ["code" => 0, "message" => "Success"],
+    "error"  => ["code" => 0, "message" => "Thành công"],
     "data"   => [
-        "services"      => $services,
-        "parts"         => $parts,
-        "service_total" => $service_total,
-        "parts_total"   => $parts_total,
-        "total"         => $total
+        "services"       => $services,
+        "parts"          => $parts,
+        "service_total"  => $service_total,
+        "parts_total"    => $parts_total,
+        "total_after"          => $total_after,
+        "total"          => $total_all,
+        "deposit_amount" => $deposit_amount // Thêm tiền đặt cọc vào phản hồi
     ]
 ]);
 

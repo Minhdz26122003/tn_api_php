@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 require_once __DIR__ .'/../Utils/configVnpay.php';
 require_once __DIR__ .'/../Config/connectdb.php'; 
@@ -7,20 +7,35 @@ require_once __DIR__ .'/../Utils/ipn_listener.php';
 // === Cấu hình hiển thị lỗi (chỉ trong môi trường phát triển) ===
 // error_reporting(E_ALL);
 // ini_set('display_errors', 1);
-
-header("Content-Type: text/html; charset=utf-8");
+header("Content-Type: text/html; charset=utf-8"); // Trả về HTML cho trình duyệt/WebView
 $conn = getDBConnection();
+
+// Đường dẫn file log cho return_url
+$log_file = __DIR__ . '/vnpay_return_debug_log.txt';
+
+// Hàm ghi log để debug
+function write_log($message) {
+    global $log_file;
+    $timestamp = date("Y-m-d H:i:s");
+    file_put_contents($log_file, "[{$timestamp}] " . $message . "\n", FILE_APPEND);
+}
+
+write_log("------ RETURN_URL REQUEST RECEIVED ------");
+write_log("GET Data: " . json_encode($_GET));
+
 // Dữ liệu sẽ trả về cho Flutter qua Deep Link
 $dataForReactNative = [
     'outcome' => 'failed',
     'message' => 'Có lỗi xảy ra trong quá trình xử lý thanh toán.',
-    'payment_id' => '',
+    'transaction_type' => 'unknown', // <-- THÊM TRƯỜNG MỚI ĐỂ PHÂN BIỆT LOẠI GIAO DỊCH
+    'id' => '', // <-- ID CỦA PAYMENT HOẶC DEPOSIT
+    'appointment_id' => null, // <-- THÊM appointment_id
+    'uid' => null, // <-- THÊM uid (nếu có trong OrderInfo)
     'amount' => 0,
     'vnp_ResponseCode' => '99',
     'vnp_TransactionStatus' => '99',
     'vnp_OrderInfo' => '',
-    'appointment_id' => null,
-    'uid' => null,
+    'vnp_TxnRef' => '', // Thêm vnp_TxnRef vào dữ liệu trả về để tiện debug/kiểm tra
 ];
 
 $queryParams = $_GET; // Lấy tất cả tham số từ URL
@@ -29,7 +44,7 @@ $vnp_SecureHash_received = $queryParams['vnp_SecureHash'] ?? ''; // Lấy chữ 
 // Loại bỏ các tham số không cần thiết để tính hash
 if (isset($queryParams['vnp_SecureHashType'])) unset($queryParams['vnp_SecureHashType']);
 if (isset($queryParams['vnp_SecureHash'])) unset($queryParams['vnp_SecureHash']);
-ksort($queryParams);
+ksort($queryParams); // Sắp xếp lại theo thứ tự alphabet
 
 $hashDataString = "";
 $i = 0;
@@ -38,137 +53,271 @@ foreach ($queryParams as $key => $value) {
     $i = 1;
 }
 
-// Lấy hash secret từ configVnpay.php
 $secureHash = hash_hmac('sha512', $hashDataString, $vnp_HashSecret);
 
-// Bắt đầu transaction
-$conn->begin_transaction();
+// Lấy các tham số VNPAY từ URL
+$vnp_ResponseCode = $_GET['vnp_ResponseCode'] ?? '99';
+$vnp_TxnRef = $_GET['vnp_TxnRef'] ?? '';
+$vnp_Amount = ($_GET['vnp_Amount'] ?? 0) / 100; // Chia lại cho 100 để có số tiền thực tế
+$vnp_OrderInfo = $_GET['vnp_OrderInfo'] ?? '';
+$vnp_TransactionStatus = $_GET['vnp_TransactionStatus'] ?? '99';
+$vnp_BankCode = $_GET['vnp_BankCode'] ?? '';
+$vnp_TransactionNo = $_GET['vnp_TransactionNo'] ?? '';
+$vnp_PayDate = $_GET['vnp_PayDate'] ?? '';
 
-try {
-    if ($vnp_SecureHash_received === $secureHash) {
-        $payment_id_ref = $queryParams['vnp_TxnRef'] ?? null; // Đây là payment_id từ DB
-        $vnp_ResponseCode = $queryParams['vnp_ResponseCode'] ?? '99';
-        $vnp_TransactionStatus = $queryParams['vnp_TransactionStatus'] ?? '99';
-        $vnp_Amount_vnpay = ($queryParams['vnp_Amount'] ?? 0) / 100; // Số tiền từ VNPAY, chia 100 để về VND
-        $vnp_OrderInfo = $queryParams['vnp_OrderInfo'] ?? 'Không có thông tin đơn hàng';
-        $vnp_BankCode = $queryParams['vnp_BankCode'] ?? ''; // Mã ngân hàng
-        $vnp_CardType = $queryParams['vnp_CardType'] ?? ''; // Loại thẻ
-        $vnp_PayDate = $queryParams['vnp_PayDate'] ?? ''; // Thời gian thanh toán VNPAY (YYYYMMDDHHIISS)
-        $vnp_TransactionNo = $queryParams['vnp_TransactionNo'] ?? ''; // Mã giao dịch tại VNPAY
+// Cập nhật các thông tin cơ bản vào $dataForReactNative
+$dataForReactNative['vnp_ResponseCode'] = $vnp_ResponseCode;
+$dataForReactNative['vnp_TransactionStatus'] = $vnp_TransactionStatus;
+$dataForReactNative['vnp_OrderInfo'] = $vnp_OrderInfo;
+$dataForReactNative['amount'] = $vnp_Amount;
+$dataForReactNative['vnp_TxnRef'] = $vnp_TxnRef; // Lưu vnp_TxnRef vào đây
 
-        // Lấy thông tin thanh toán từ DB, KHÓA HÀNG ĐỂ TRÁNH RACE CONDITION VỚI IPN
-        $stmtPayment = $conn->prepare("SELECT payment_id, appointment_id, total_price, status, uid FROM payment WHERE payment_id = ? FOR UPDATE");
-        if (!$stmtPayment) {
-            throw new Exception("Lỗi chuẩn bị câu lệnh (payment): " . $conn->error);
+// Trích xuất appointment_id và uid từ vnp_OrderInfo nếu có
+preg_match('/lich hen #(\d+)/', $vnp_OrderInfo, $matches_app);
+if (isset($matches_app[1])) {
+    $dataForReactNative['appointment_id'] = (int)$matches_app[1];
+}
+preg_match('/User ID: (\d+)/', $vnp_OrderInfo, $matches_uid);
+if (isset($matches_uid[1])) {
+    $dataForReactNative['uid'] = (int)$matches_uid[1];
+}
+
+
+if ($secureHash == $vnp_SecureHash_received) {
+    write_log("RETURN_URL Checksum MATCHED. vnp_TxnRef: $vnp_TxnRef, ResponseCode: $vnp_ResponseCode, Amount: $vnp_Amount");
+
+    $conn->begin_transaction();
+
+    // PHÂN BIỆT LOẠI GIAO DỊCH DỰA VÀO vnp_TxnRef (tiền tố 'DP' cho đặt cọc)
+    if (strpos($vnp_TxnRef, 'DP') === 0) {
+        // Đây là giao dịch đặt cọc
+        $deposit_id_ref = (int) substr($vnp_TxnRef, 2); // Bỏ tiền tố 'DP'
+        $dataForReactNative['id'] = $deposit_id_ref; // Gán deposit_id vào trường 'id'
+        $dataForReactNative['transaction_type'] = 'deposit'; // Đặt loại giao dịch
+        write_log("Detected DEPOSIT transaction. Deposit ID: $deposit_id_ref");
+
+        // Lấy thông tin đặt cọc từ DB
+        $sql_select_deposit = "SELECT status, amount, appointment_id FROM deposits WHERE deposit_id = ? FOR UPDATE";
+        $stmt_select_deposit = $conn->prepare($sql_select_deposit);
+        if (!$stmt_select_deposit) {
+            throw new Exception("Lỗi chuẩn bị câu lệnh SELECT deposit: " . $conn->error);
         }
-        $stmtPayment->bind_param("i", $payment_id_ref);
-        $stmtPayment->execute();
-        $resultPayment = $stmtPayment->get_result();
-        $paymentData = $resultPayment->fetch_assoc();
-        $stmtPayment->close();
+        $stmt_select_deposit->bind_param("i", $deposit_id_ref);
+        $stmt_select_deposit->execute();
+        $result_deposit = $stmt_select_deposit->get_result();
 
-        if ($paymentData) {
-            $currentPaymentStatus = $paymentData['status'];
-            $appointment_id = $paymentData['appointment_id'];
-            $total_price_db = $paymentData['total_price'];
-            $uid_db = $paymentData['uid']; // Lấy UID từ DB
+        if ($result_deposit->num_rows > 0) {
+            $deposit = $result_deposit->fetch_assoc();
+            $currentDepositStatus = $deposit['status'];
+            $deposit_amount_in_db = $deposit['amount'];
+            $appointment_id_from_db = $deposit['appointment_id']; // Lấy appointment_id từ bản ghi deposit
+            $stmt_select_deposit->close();
 
-            // Cập nhật dữ liệu cho Flutter
-            $dataForReactNative['payment_id'] = $payment_id_ref;
-            $dataForReactNative['amount'] = $total_price_db; // Sử dụng số tiền từ DB
-            $dataForReactNative['vnp_ResponseCode'] = $vnp_ResponseCode;
-            $dataForReactNative['vnp_TransactionStatus'] = $vnp_TransactionStatus;
-            $dataForReactNative['vnp_OrderInfo'] = $vnp_OrderInfo;
-            $dataForReactNative['appointment_id'] = $appointment_id;
-            $dataForReactNative['uid'] = $uid_db; // Gửi UID về Flutter
+            // Cập nhật appointment_id vào dataForReactNative (quan trọng cho Flutter)
+            $dataForReactNative['appointment_id'] = $appointment_id_from_db;
 
-            // Chỉ xử lý nếu trạng thái thanh toán đang là chờ VNPAY (7) hoặc chưa thanh toán (0)
-            if ($currentPaymentStatus == 0) {
+            // Kiểm tra số tiền để tránh giả mạo
+            if ($deposit_amount_in_db != $vnp_Amount) {
+                write_log("RETURN_URL: Deposit amount mismatch. DB: $deposit_amount_in_db, VNPAY: $vnp_Amount");
+                $dataForReactNative['message'] = 'Lỗi: Số tiền đặt cọc không khớp.';
+                $conn->rollback();
+            }
+            // Chỉ cập nhật nếu trạng thái hiện tại là 0 (pending)
+            else if ($currentDepositStatus == 0) {
+                $update_deposit_status = 0; // Mặc định là thất bại
+                $update_appointment_status = null;
+
                 if ($vnp_ResponseCode == '00' && $vnp_TransactionStatus == '00') {
-                    // Giao dịch thành công
-                    if ($total_price_db == $vnp_Amount_vnpay) { // Kiểm tra số tiền khớp
-                        $new_payment_status = 1; // 1: Thành công
-                        $new_appointment_status = 7; // Ví dụ: 2 là "Đã thanh toán"
-                        $dataForReactNative['outcome'] = 'success';
-                        $dataForReactNative['message'] = 'Thanh toán thành công!';
-                    } else {
-                        // Số tiền không khớp (có thể do lỗi hoặc gian lận)
-                        $new_payment_status = 2; // 2: Lỗi
-                        $new_appointment_status = 6; // Ví dụ: 6 là "Thanh toán lỗi"
-                        $dataForReactNative['outcome'] = 'failed';
-                        $dataForReactNative['message'] = 'Lỗi: Số tiền không khớp giữa VNPAY và hệ thống.';
-                    }
-                } else {
-                    // Giao dịch thất bại hoặc bị hủy
-                    $new_payment_status = 2; // 2: Thất bại
-                    $new_appointment_status = 6; // Ví dụ: 6 là "Thanh toán lỗi"
-                    $dataForReactNative['outcome'] = 'failed';
-                    $dataForReactNative['message'] = 'Thanh toán thất bại hoặc đã hủy. Mã lỗi VNPAY: ' . $vnp_ResponseCode;
-                }
-                
-                // Cập nhật trạng thái trong bảng `payment`
-                $sqlUpdatePayment = "UPDATE payment SET status = ?, form = 1, payment_date = NOW()  WHERE payment_id = ?";
-                $stmtUpdatePayment = $conn->prepare($sqlUpdatePayment);
-                if (!$stmtUpdatePayment) throw new Exception("Lỗi chuẩn bị câu lệnh (update payment): " . $conn->error);
-                $stmtUpdatePayment->bind_param("ii", $new_payment_status, $payment_id_ref);
-                $stmtUpdatePayment->execute();
-                $stmtUpdatePayment->close();
+                    // Giao dịch đặt cọc thành công
+                    $update_deposit_status = 1; // Đã thanh toán
+                    $update_appointment_status = 2; // Cập nhật trạng thái appointment sang 2 (đã đặt cọc)
 
-                // Cập nhật trạng thái trong bảng `payment_infor`
-                $sqlUpdatepayment_infor = "UPDATE payment_infor SET status = ?, vnp_ResponseCode = ?, vnp_TransactionStatus = ?, vnp_OrderInfo = ?, vnp_BankCode = ?, vnp_CardType = ?, vnp_PayDate = ?, vnp_TransactionNo = ? WHERE payment_id = ?";
-                $stmtUpdatepayment_infor = $conn->prepare($sqlUpdatepayment_infor);
-                if (!$stmtUpdatepayment_infor) throw new Exception("Lỗi chuẩn bị câu lệnh (update payment): " . $conn->error);
-                $stmtUpdatepayment_infor->bind_param("isssssssi", $new_payment_status, $vnp_ResponseCode, $vnp_TransactionStatus, $vnp_OrderInfo, $vnp_BankCode, $vnp_CardType, $vnp_PayDate, $vnp_TransactionNo, $payment_id_ref);
-                $stmtUpdatepayment_infor->execute();
-                $stmtUpdatepayment_infor->close();
-
-                // Cập nhật trạng thái trong bảng `appointment`
-                $sqlUpdateAppointment = "UPDATE appointment SET status = ? WHERE appointment_id = ?";
-                $stmtUpdateAppointment = $conn->prepare($sqlUpdateAppointment);
-                if (!$stmtUpdateAppointment) throw new Exception("Lỗi chuẩn bị câu lệnh (update appointment): " . $conn->error);
-                $stmtUpdateAppointment->bind_param("ii", $new_appointment_status, $appointment_id);
-                $stmtUpdateAppointment->execute();
-                $stmtUpdateAppointment->close();
-
-            } else {
-                // Đơn hàng đã được xử lý bởi IPN hoặc ở trạng thái không cần xử lý lại
-                $dataForReactNative['outcome'] = 'processed';
-                $dataForReactNative['message'] = 'Đơn hàng đã được xử lý trước đó hoặc ở trạng thái không hợp lệ.';
-                // Không thay đổi trạng thái nếu nó không phải là 0 hoặc 7
-                if ($currentPaymentStatus == 1) { // Đã thành công rồi
                     $dataForReactNative['outcome'] = 'success';
-                    $dataForReactNative['message'] = 'Thanh toán đã hoàn tất thành công.';
+                    $dataForReactNative['message'] = 'Đặt cọc thành công!';
+                    write_log("RETURN_URL: Deposit ID $deposit_id_ref SUCCESS. Updating deposit status to 1 and appointment status to 2.");
+                } else {
+                    // Giao dịch đặt cọc thất bại (bao gồm cả bị hủy giữa chừng)
+                   
+                    $update_deposit_status =0; // Đặt về 0 (pending) hoặc 2 (thất bại) tùy vào yêu cầu của bạn.
+                                             
+                    $dataForReactNative['outcome'] = 'failed';
+                    $dataForReactNative['message'] = 'Đặt cọc thất bại hoặc bị hủy: ' . ($vnp_OrderInfo ?: 'Lỗi không xác định.');
+                    write_log("RETURN_URL: Deposit ID $deposit_id_ref FAILED/CANCELED. ResponseCode: $vnp_ResponseCode, TransactionStatus: $vnp_TransactionStatus. Updating deposit status to $update_deposit_status.");
                 }
+
+                // Cập nhật trạng thái bản ghi đặt cọc trong DB
+                $sql_update_deposit = "UPDATE deposits SET status = ?, deposit_date= NOW(), vnpay_transaction_id = ?, vnpay_response_code = ?, vnpay_transaction_status = ? WHERE deposit_id = ?";
+                $stmt_update_deposit = $conn->prepare($sql_update_deposit);
+                if (!$stmt_update_deposit) {
+                    throw new Exception("Lỗi chuẩn bị câu lệnh UPDATE deposit (return): " . $conn->error);
+                }
+                $stmt_update_deposit->bind_param("isssi", $update_deposit_status, $vnp_TransactionNo, $vnp_ResponseCode, $vnp_TransactionStatus, $deposit_id_ref);
+                if (!$stmt_update_deposit->execute()) {
+                    throw new Exception("Lỗi thực thi câu lệnh UPDATE deposit (return): " . $stmt_update_deposit->error);
+                }
+                $stmt_update_deposit->close();
+
+                // Nếu đặt cọc thành công, cập nhật trạng thái appointment
+                if ($update_appointment_status !== null) {
+                    $sql_update_appointment = "UPDATE appointment SET status = ? WHERE appointment_id = ?";
+                    $stmt_update_appointment = $conn->prepare($sql_update_appointment);
+                    if (!$stmt_update_appointment) {
+                        throw new Exception("Lỗi chuẩn bị câu lệnh UPDATE appointment (deposit return): " . $conn->error);
+                    }
+                    $stmt_update_appointment->bind_param("ii", $update_appointment_status, $appointment_id_from_db);
+                    if (!$stmt_update_appointment->execute()) {
+                        throw new Exception("Lỗi thực thi câu lệnh UPDATE appointment (deposit return): " . $stmt_update_appointment->error);
+                    }
+                    $stmt_update_appointment->close();
+                    write_log("RETURN_URL: Appointment ID $appointment_id_from_db status updated to $update_appointment_status (deposit success).");
+                }
+                $conn->commit(); // Hoàn thành giao dịch nếu mọi thứ thành công
+            } else {
+                // Đơn hàng đặt cọc đã được xử lý bởi IPN hoặc ở trạng thái khác
+                write_log("RETURN_URL: Deposit record for DP$deposit_id_ref is in an unhandleable state ($currentDepositStatus). Already processed or not pending.");
+                $dataForReactNative['outcome'] = ($currentDepositStatus == 1) ? 'success' : 'failed';
+                $dataForReactNative['message'] = 'Giao dịch đặt cọc đã được xử lý. Vui lòng kiểm tra lại trạng thái đơn hàng.';
+                $conn->rollback(); // Không thay đổi trạng thái nếu đã xử lý
             }
         } else {
-            // Không tìm thấy bản ghi thanh toán
-            $dataForReactNative['message'] = 'Không tìm thấy bản ghi thanh toán với ID: ' . ($payment_id_ref ?? 'NULL');
+            write_log("RETURN_URL: Deposit record NOT FOUND for vnp_TxnRef: " . $vnp_TxnRef . ".");
+            $dataForReactNative['message'] = 'Không tìm thấy thông tin đặt cọc.';
+            $conn->rollback();
         }
 
-        $conn->commit(); // Hoàn thành giao dịch
-
     } else {
-        // Chữ ký không hợp lệ
-        $dataForReactNative['message'] = 'Chữ ký không hợp lệ. Giao dịch có thể không an toàn.';
+        // Đây là giao dịch thanh toán đầy đủ (payment) - GIỮ NGUYÊN LOGIC CŨ CỦA BẠN
+        $payment_id_ref = (int) $vnp_TxnRef;
+        $dataForReactNative['id'] = $payment_id_ref; // Gán payment_id vào trường 'id'
+        $dataForReactNative['transaction_type'] = 'full_payment'; // Đặt loại giao dịch
+        write_log("Detected FULL PAYMENT transaction. Payment ID: $payment_id_ref");
+
+        // Lấy thông tin thanh toán từ DB (giữ nguyên code cũ của bạn)
+        $sql_select_payment = "SELECT status, total_price, appointment_id FROM payment WHERE payment_id = ? FOR UPDATE";
+        $stmt_select_payment = $conn->prepare($sql_select_payment);
+        if (!$stmt_select_payment) {
+            throw new Exception("Lỗi chuẩn bị câu lệnh SELECT payment: " . $conn->error);
+        }
+        $stmt_select_payment->bind_param("i", $payment_id_ref);
+        $stmt_select_payment->execute();
+        $result_payment = $stmt_select_payment->get_result();
+
+        if ($result_payment->num_rows > 0) {
+            $payment = $result_payment->fetch_assoc();
+            $currentPaymentStatus = $payment['status'];
+            $payment_amount_in_db = $payment['total_price'];
+            $appointment_id_from_db = $payment['appointment_id'];
+            $stmt_select_payment->close();
+
+            // Cập nhật appointment_id vào dataForReactNative
+            $dataForReactNative['appointment_id'] = $appointment_id_from_db;
+
+            // Kiểm tra số tiền để tránh giả mạo
+            if ($payment_amount_in_db != $vnp_Amount) {
+                write_log("RETURN_URL: Payment amount mismatch. DB: $payment_amount_in_db, VNPAY: $vnp_Amount");
+                $dataForReactNative['message'] = 'Lỗi: Số tiền thanh toán không khớp.';
+                $conn->rollback();
+            }
+            // Chỉ cập nhật nếu trạng thái hiện tại là 0 (pending)
+            else if ($currentPaymentStatus == 0) {
+                $update_payment_status = -1; // Mặc định là thất bại
+                $update_appointment_status = null;
+
+                if ($vnp_ResponseCode == '00' && $vnp_TransactionStatus == '00') {
+                    // Giao dịch thanh toán đầy đủ thành công
+                    $update_payment_status = 1; // Đã thanh toán
+                    // Cập nhật trạng thái appointment (giả sử thanh toán đầy đủ chuyển appointment.status = 5)
+                    $update_appointment_status = 7 ; // Ví dụ: 5 là 'đã thanh toán đầy đủ'
+
+                    $dataForReactNative['outcome'] = 'success';
+                    $dataForReactNative['message'] = 'Thanh toán thành công!';
+                    write_log("RETURN_URL: Payment ID $payment_id_ref SUCCESS. Updating payment status to 1 and appointment status to 5.");
+                } else {
+                    // Giao dịch thanh toán đầy đủ thất bại
+                    $update_payment_status = 2; // Thất bại
+                    $dataForReactNative['outcome'] = 'failed';
+                    $dataForReactNative['message'] = 'Thanh toán thất bại: ' . ($vnp_OrderInfo ?: 'Lỗi không xác định.');
+                    write_log("RETURN_URL: Payment ID $payment_id_ref FAILED. ResponseCode: $vnp_ResponseCode, TransactionStatus: $vnp_TransactionStatus. Updating payment status to 2.");
+                }
+
+                // Cập nhật trạng thái bản ghi thanh toán trong DB
+                $sql_update_payment = "UPDATE payment SET status = ?, form = 1, payment_date = NOW() WHERE payment_id = ?";
+                $stmt_update_payment = $conn->prepare($sql_update_payment);
+                if (!$stmt_update_payment) {
+                    throw new Exception("Lỗi chuẩn bị câu lệnh UPDATE payment (return): " . $conn->error);
+                }
+                $stmt_update_payment->bind_param("ii", $update_payment_status, $payment_id_ref);
+                if (!$stmt_update_payment->execute()) {
+                    throw new Exception("Lỗi thực thi câu lệnh UPDATE payment (return): " . $stmt_update_payment->error);
+                }
+                $stmt_update_payment->close();
+
+                // Nếu thanh toán đầy đủ thành công, cập nhật trạng thái appointment
+                if ($update_appointment_status !== null) {
+                    $sql_update_appointment = "UPDATE appointment SET status = ? WHERE appointment_id = ?";
+                    $stmt_update_appointment = $conn->prepare($sql_update_appointment);
+                    if (!$stmt_update_appointment) {
+                        throw new Exception("Lỗi chuẩn bị câu lệnh UPDATE appointment (payment return): " . $conn->error);
+                    }
+                    $stmt_update_appointment->bind_param("ii", $update_appointment_status, $appointment_id_from_db);
+                    if (!$stmt_update_appointment->execute()) {
+                        throw new Exception("Lỗi thực thi câu lệnh UPDATE appointment (payment return): " . $stmt_update_appointment->error);
+                    }
+                    $stmt_update_appointment->close();
+                    write_log("RETURN_URL: Appointment ID $appointment_id_from_db status updated to $update_appointment_status (full payment success).");
+                }
+                $conn->commit(); // Hoàn thành giao dịch nếu mọi thứ thành công
+            } else {
+                // Đơn hàng thanh toán đã được xử lý bởi IPN hoặc ở trạng thái khác
+                write_log("RETURN_URL: Payment record for $payment_id_ref is in an unhandleable state ($currentPaymentStatus). Already processed or not pending.");
+                $dataForReactNative['outcome'] = ($currentPaymentStatus == 1) ? 'success' : 'failed';
+                $dataForReactNative['message'] = 'Giao dịch thanh toán đã được xử lý. Vui lòng kiểm tra lại trạng thái đơn hàng.';
+                $conn->rollback(); // Không thay đổi trạng thái nếu đã xử lý
+            }
+        } else {
+            write_log("RETURN_URL: Payment record NOT FOUND for vnp_TxnRef: " . $vnp_TxnRef . ".");
+            $dataForReactNative['message'] = 'Không tìm thấy thông tin thanh toán.';
+            $conn->rollback();
+        }
     }
-} catch (Exception $e) {
-    $conn->rollback(); // Rollback nếu có lỗi
-    error_log("Lỗi CSDL trong return_url.php: " . $e->getMessage());
+
+} else {
+    // Chữ ký không hợp lệ
+    write_log("RETURN_URL Signature INVALID. Received: $vnp_SecureHash_received, Expected: $secureHash.");
+    $dataForReactNative['message'] = 'Chữ ký không hợp lệ.';
+    $dataForReactNative['vnp_ResponseCode'] = '97'; // VNPAY invalid signature code
+}
+
+// Bắt lỗi hệ thống
+if ($conn && $conn->connect_error) {
+    write_log("RETURN_URL Database connection error: " . $conn->connect_error);
+    $dataForReactNative['message'] = 'Lỗi hệ thống: Không thể kết nối cơ sở dữ liệu.';
+    $dataForReactNative['outcome'] = 'failed';
+} elseif (isset($e)) { // Kiểm tra nếu có ngoại lệ được ném ra
+    write_log("RETURN_URL System error (Exception): " . $e->getMessage());
     $dataForReactNative['message'] = 'Lỗi hệ thống: ' . $e->getMessage();
+    $dataForReactNative['outcome'] = 'failed';
+}
+
+if ($conn) {
+    $conn->close();
 }
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Kết quả thanh toán</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả thanh toán VNPAY</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #f0f0f0; }
-        .success { color: green; }
-        .failed { color: red; }
-        .processed { color: orange; } /* Thêm màu cho trạng thái đã xử lý */
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f4; }
+        h1 { color: #333; }
+        .success { color: #28a745; font-weight: bold; }
+        .failed { color: #dc3545; font-weight: bold; } 
+        .pending { color: #ffc107; font-weight: bold; } 
+        .processed { color: #17a2b8; font-weight: bold; } 
+        .error { color: #6c757d; font-weight: bold; }
     </style>
 </head>
 <body>

@@ -63,10 +63,25 @@ $stmt2->execute();
 $parts = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt2->close();
 
+
+// Lấy số tiền đặt cọc từ bảng deposits
+$deposit_amount = 0.0;
+$stmtDeposit = $conn->prepare("SELECT amount FROM deposits WHERE appointment_id = ? AND status = 1"); //
+$stmtDeposit->bind_param("i", $appointment_id); //
+$stmtDeposit->execute(); //
+$resultDeposit = $stmtDeposit->get_result(); //
+
+if ($resultDeposit->num_rows > 0) { //
+    $rowDeposit = $resultDeposit->fetch_assoc(); //
+    $deposit_amount = floatval($rowDeposit['amount']); //
+}
+$stmtDeposit->close(); //
+
 // Tính tổng
-$service_total = array_sum(array_map(fn($r)=>floatval($r['price']), $services));
-$parts_total   = array_sum(array_map(fn($r)=>floatval($r['sub_total']), $parts));
-$total         = $service_total + $parts_total;
+$service_total = array_sum(array_map(fn($r)=>floatval($r['price']), $services)); //
+$parts_total   = array_sum(array_map(fn($r)=>floatval($r['sub_total']), $parts)); //
+$total         = $service_total + $parts_total; //
+$total_after     = ($service_total + $parts_total)-$deposit_amount; //
 
 echo json_encode([
     "success"       => true,
@@ -74,7 +89,10 @@ echo json_encode([
     "parts"         => $parts,
     "service_total" => $service_total,
     "parts_total"   => $parts_total,
-    "total"         => $total
+    "total"         => $total,
+    "total_after"   => $total_after, 
+    "deposit_amount" => $deposit_amount   
+
 ], JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);
 
 $conn->close();

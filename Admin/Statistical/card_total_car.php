@@ -28,7 +28,7 @@ if (!verifyToken($token)) {
     exit();
 }
 try {
-    $sql = "SELECT COUNT(car_id) AS total_car FROM car WHERE status != 1";
+    $sql = "SELECT COUNT(car_id) AS total_car FROM car WHERE is_deleted != 1";
     $result = $conn->query($sql);
 
     if ($result === false) {

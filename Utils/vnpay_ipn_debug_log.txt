@@ -71,3 +71,47 @@
 [2025-05-22 22:36:24] ------ IPN REQUEST RECEIVED ------
 [2025-05-22 22:36:24] GET Data: {"vnp_Amount":"130000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14973969","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan lich hen #34 - Payment ID: 10 - User ID: 1","vnp_PayDate":"20250522223638","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14973969","vnp_TransactionStatus":"00","vnp_TxnRef":"10","vnp_SecureHash":"61ae8c92dd7d0b467c726ef12702cb015d6ea72525367ca250a4b6ca79a6192807ba419218948b323e42cf82d4b8249e86b7b5069fc1bf52e0fceb855fa61ee9"}
 [2025-05-22 22:36:24] IPN: Payment SUCCESS for payment_id: 10
+[2025-05-29 19:17:29] ------ IPN REQUEST RECEIVED ------
+[2025-05-29 19:17:29] GET Data: {"vnp_Amount":"18000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14988334","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan tien coc lich hen #52 cho KH #1","vnp_PayDate":"20250529191750","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14988334","vnp_TransactionStatus":"00","vnp_TxnRef":"1","vnp_SecureHash":"667763411ee0b36f7b2767d250b1c83216377a28605dd064dfaefe45eaf4006e01fca781b196fe6900aebc4c0143f7922ab8d368156dc249703fd2c9eefd90f5"}
+[2025-05-29 19:17:29] IPN Checksum MATCHED. vnp_TxnRef: 1, ResponseCode: 00, Amount: 18000000
+[2025-05-29 19:17:29] Detected FULL PAYMENT transaction. Payment ID: 1
+[2025-05-29 19:17:29] IPN: Payment record NOT FOUND for vnp_TxnRef: 1. Returning 01.
+[2025-05-29 19:31:14] ------ IPN REQUEST RECEIVED ------
+[2025-05-29 19:31:14] GET Data: {"vnp_Amount":"18000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14988355","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan tien coc lich hen #52 cho KH #1","vnp_PayDate":"20250529193137","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14988355","vnp_TransactionStatus":"00","vnp_TxnRef":"2","vnp_SecureHash":"b512455ad828f09c42be6cd6446ced5933aac566a5c5f1e4b5ee08f250f73f1d0c0ce790fc694f2a08c575a5734ad0256ce0701c175314be5ed48be60be63bca"}
+[2025-05-29 19:31:14] IPN Checksum MATCHED. vnp_TxnRef: 2, ResponseCode: 00, Amount: 18000000
+[2025-05-29 19:31:14] Detected FULL PAYMENT transaction. Payment ID: 2
+[2025-05-29 19:31:14] IPN: Payment record NOT FOUND for vnp_TxnRef: 2. Returning 01.
+[2025-05-29 22:22:15] ------ IPN REQUEST RECEIVED ------
+[2025-05-29 22:22:15] GET Data: {"vnp_Amount":"30000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14988613","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan tien coc lich hen #63 cho KH #18","vnp_PayDate":"20250529222239","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14988613","vnp_TransactionStatus":"00","vnp_TxnRef":"4","vnp_SecureHash":"4691d73532c64588d6327283ec19e86b41b48db62b87022e0c77171817616a509721b32d075e073d2f87f60f74dbbba0a9da79f28822bb13cdf24e62143cb756"}
+[2025-05-29 22:22:15] IPN Checksum MATCHED. vnp_TxnRef: 4, ResponseCode: 00, Amount: 30000000
+[2025-05-29 22:22:15] Detected FULL PAYMENT transaction. Payment ID: 4
+[2025-05-29 22:22:15] IPN: Payment record NOT FOUND for vnp_TxnRef: 4. Returning 01.
+[2025-05-29 22:37:33] ------ IPN REQUEST RECEIVED ------
+[2025-05-29 22:37:33] GET Data: {"vnp_Amount":"18000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14988639","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan tien coc lich hen #52 cho KH #1","vnp_PayDate":"20250529223757","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14988639","vnp_TransactionStatus":"00","vnp_TxnRef":"3","vnp_SecureHash":"b4e071e38746712a4e6565023eaaaedd405301700fafa7d017c7f80f13dfb5864125517d4cf308fdfab681ad7d183ed944688e7ed3e63d419825aee79db148f2"}
+[2025-05-29 22:37:33] IPN Checksum MATCHED. vnp_TxnRef: 3, ResponseCode: 00, Amount: 18000000
+[2025-05-29 22:37:33] Detected FULL PAYMENT transaction. Payment ID: 3
+[2025-05-29 22:37:33] IPN: Payment record NOT FOUND for vnp_TxnRef: 3. Returning 01.
+[2025-05-29 23:11:55] ------ IPN REQUEST RECEIVED ------
+[2025-05-29 23:11:55] GET Data: {"vnp_Amount":"18000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14988709","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan tien coc lich hen #52 cho KH #1","vnp_PayDate":"20250529231220","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14988709","vnp_TransactionStatus":"00","vnp_TxnRef":"DP5","vnp_SecureHash":"48341978d91512bd649b21efba0e5456772376eaf459507f6cdcf6fae33ac8b95b50a4c04ebcb2d7cb6d65e0d256384ced2087bdd2cd7bc4c2a2efb53447eb38"}
+[2025-05-29 23:11:55] IPN Checksum MATCHED. vnp_TxnRef: DP5, ResponseCode: 00, Amount: 18000000
+[2025-05-29 23:11:55] Detected DEPOSIT transaction. Deposit ID: 5
+[2025-05-29 23:11:55] IPN: Deposit ID 5 SUCCESS. Updating deposit status to 1 and appointment status to 2.
+[2025-05-29 23:11:55] IPN: Appointment ID 52 status updated to 2 (deposit success).
+[2025-05-30 00:40:58] ------ IPN REQUEST RECEIVED ------
+[2025-05-30 00:40:58] GET Data: {"vnp_Amount":"54000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14988870","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan lich hen #52 - Payment ID: 15 - User ID: 1","vnp_PayDate":"20250530004121","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14988870","vnp_TransactionStatus":"00","vnp_TxnRef":"15","vnp_SecureHash":"8db969e7cab875ec7399e700b745ba2fb1a05c087a684b705475a56972f94aaf3ffdf79d92eeba4ff150f40a58bc7ff1aeb01752691ed9a0e9a013a18ecbc89b"}
+[2025-05-30 00:40:58] IPN Checksum MATCHED. vnp_TxnRef: 15, ResponseCode: 00, Amount: 54000000
+[2025-05-30 00:40:58] Detected FULL PAYMENT transaction. Payment ID: 15
+[2025-05-30 00:40:58] IPN: Payment ID 15 SUCCESS. Updating payment status to 1 and appointment status to 7.
+[2025-05-30 00:40:58] IPN: Appointment ID 52 status updated to 7 (full payment success).
+[2025-05-30 01:02:58] ------ IPN REQUEST RECEIVED ------
+[2025-05-30 01:02:58] GET Data: {"vnp_Amount":"30000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14988900","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan tien coc lich hen #56 cho KH #15","vnp_PayDate":"20250530010322","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14988900","vnp_TransactionStatus":"00","vnp_TxnRef":"DP6","vnp_SecureHash":"9a19ff564e26a8c98f55e871fd65438edb5bfec654c83eaae9a0deaf5988d0cb0cc096f67fe7de15e7d8d9c010f22ada08afc239bcec21134ea4822860306118"}
+[2025-05-30 01:02:58] IPN Checksum MATCHED. vnp_TxnRef: DP6, ResponseCode: 00, Amount: 30000000
+[2025-05-30 01:02:58] Detected DEPOSIT transaction. Deposit ID: 6
+[2025-05-30 01:02:58] IPN: Deposit ID 6 SUCCESS. Updating deposit status to 1 and appointment status to 2.
+[2025-05-30 01:02:58] IPN: Appointment ID 56 status updated to 2 (deposit success).
+[2025-05-30 01:05:29] ------ IPN REQUEST RECEIVED ------
+[2025-05-30 01:05:29] GET Data: {"vnp_Amount":"385000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14988903","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan lich hen #56 - Payment ID: 16 - User ID: 15","vnp_PayDate":"20250530010554","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14988903","vnp_TransactionStatus":"00","vnp_TxnRef":"16","vnp_SecureHash":"6b2ef57682f6ba32788224077bd0e2c052ba29aeaee55dd5386aed20fbbbec755298d017479a07e306c2c16a8248585753c903b1ef169f06e2933ebc5fb59d85"}
+[2025-05-30 01:05:29] IPN Checksum MATCHED. vnp_TxnRef: 16, ResponseCode: 00, Amount: 385000000
+[2025-05-30 01:05:29] Detected FULL PAYMENT transaction. Payment ID: 16
+[2025-05-30 01:05:29] IPN: Payment ID 16 SUCCESS. Updating payment status to 1 and appointment status to 7.
+[2025-05-30 01:05:29] IPN: Appointment ID 56 status updated to 7 (full payment success).
