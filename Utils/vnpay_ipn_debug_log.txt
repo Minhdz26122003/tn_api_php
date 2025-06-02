@@ -139,3 +139,9 @@
 [2025-05-31 02:10:01] Detected FULL PAYMENT transaction. Payment ID: 18
 [2025-05-31 02:10:01] IPN: Payment ID 18 SUCCESS. Updating payment status to 1 and appointment status to 7.
 [2025-05-31 02:10:01] IPN: Appointment ID 70 status updated to 7 (full payment success).
+[2025-06-02 16:54:34] ------ IPN REQUEST RECEIVED ------
+[2025-06-02 16:54:34] GET Data: {"vnp_Amount":"93000000","vnp_BankCode":"NCB","vnp_BankTranNo":"VNP14995016","vnp_CardType":"ATM","vnp_OrderInfo":"Thanh toan tien coc lich hen #79 cho KH #18","vnp_PayDate":"20250602165500","vnp_ResponseCode":"00","vnp_TmnCode":"L2FDII78","vnp_TransactionNo":"14995016","vnp_TransactionStatus":"00","vnp_TxnRef":"DP11","vnp_SecureHash":"62071810cc0ce424f28deb1a767323ff59a0246b83315ca9a56852d1f3b51b79ad55e15ae885af52889b94008e5b478b3f6b17c2dcab92905c9af50ffe5e0fb2"}
+[2025-06-02 16:54:34] IPN Checksum MATCHED. vnp_TxnRef: DP11, ResponseCode: 00, Amount: 93000000
+[2025-06-02 16:54:34] Detected DEPOSIT transaction. Deposit ID: 11
+[2025-06-02 16:54:34] IPN: Deposit ID 11 SUCCESS. Updating deposit status to 1 and appointment status to 2.
+[2025-06-02 16:54:34] IPN: Appointment ID 79 status updated to 2 (deposit success).

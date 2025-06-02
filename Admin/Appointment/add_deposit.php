@@ -40,12 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $appointment_id = intval($data['appointment_id']);
     
-    // Bắt đầu giao dịch để đảm bảo tính nhất quán dữ liệu
+   
     $conn->begin_transaction();
 
     try {
         // 1. Kiểm tra xem lịch hẹn có tồn tại và đang ở trạng thái chờ xác nhận không (ví dụ: status = 0)
-        // Điều này giúp tránh việc tạo đặt cọc trùng lặp hoặc cho lịch hẹn đã xử lý
+       
         $stmt_check_appointment = $conn->prepare("SELECT status FROM appointment WHERE appointment_id = ?");
         $stmt_check_appointment->bind_param("i", $appointment_id);
         $stmt_check_appointment->execute();
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         $appointment_info = $result_check->fetch_assoc();
-        // Giả định trạng thái ban đầu là 0, trạng thái báo giá là 2
+        // Giả định trạng thái ban đầu là 0, trạng thái báo giá là 0
         // Nếu đã có deposit hoặc trạng thái đã là báo giá/đã xác nhận, thì không tạo lại.
         if ($appointment_info['status'] != 0) { 
             throw new Exception("Lịch hẹn không ở trạng thái chờ xác nhận. Không thể tạo đặt cọc.");
