@@ -30,9 +30,9 @@ if (!verifyToken($token)) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-    $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 10;
+    $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 20;
     if ($page < 1) $page = 1;
-    if ($limit < 1) $limit = 10;
+    if ($limit < 1) $limit = 20;
     $offset = ($page - 1) * $limit;
 
     // Đếm tổng số bản ghi

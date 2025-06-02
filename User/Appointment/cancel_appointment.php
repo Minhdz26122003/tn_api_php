@@ -49,7 +49,7 @@ $reason = isset($input['reason']) ? $conn->real_escape_string($input['reason']) 
 // Cập nhật
 $stmt = $conn->prepare("
     UPDATE appointment
-    SET status = 5,
+    SET status = 8,
         reason = ?
     WHERE uid = ? AND appointment_id = ?
 ");
