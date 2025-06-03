@@ -1,7 +1,8 @@
 <?php
 require '../../vendor/autoload.php';
+require_once "../../Config/connectdb.php";
 require_once "../../Utils/function.php";
-require_once "../../Config/connectdb.php"; 
+require_once "../../Utils/verify_token_user.php";
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -111,7 +112,9 @@ try {
     
     $stmt = $conn->prepare("UPDATE users SET password = ? WHERE email = ?");
     $stmt->bind_param("ss", $hashedPassword, $email);
-    $stmt->execute();
+   error_log("Attempting to update password for email: " . $email . " with hashed password: " . $hashedPassword);
+    $updateSuccess = $stmt->execute();
+    error_log("Update users result: " . ($updateSuccess ? "SUCCESS" : "FAILED") . " Affected rows: " . $stmt->affected_rows);
     $stmt->close();
 
     // Xóa OTP khỏi bảng password_reset để tránh tái sử dụng

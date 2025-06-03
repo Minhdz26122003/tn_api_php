@@ -1,5 +1,4 @@
 <?php
-// User/Notify/read_only.php
 require_once "../../Config/connectdb.php";
 require_once "../../Utils/function.php";
 require_once "../../Utils/verify_token_user.php";

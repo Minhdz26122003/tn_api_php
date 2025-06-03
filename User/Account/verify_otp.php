@@ -1,8 +1,9 @@
 <?php
 
 require '../../vendor/autoload.php';
-require '../..//Config/connectdb.php';
+require_once "../../Config/connectdb.php";
 require_once "../../Utils/function.php";
+require_once "../../Utils/verify_token_user.php";
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -10,8 +11,7 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 
-date_default_timezone_set('UTC');
-
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 // define("SECRET_KEY", "minh8386");
 
 $response = [

@@ -1,7 +1,7 @@
 <?php
 require '../../vendor/autoload.php';
+require_once "../../Config/connectdb.php";
 require_once "../../Utils/function.php";
-require_once "../../Config/connectdb.php"; 
 require_once "../../Utils/verify_token_user.php";
 
 header("Access-Control-Allow-Origin: *");
